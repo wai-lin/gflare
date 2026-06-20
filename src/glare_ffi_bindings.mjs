@@ -1,4 +1,4 @@
-import { Ok, Error } from "../gleam.mjs";
+import { Ok, Error } from "./gleam.mjs";
 
 function cast_kv(raw) {
   if (raw && typeof raw.get === "function" && typeof raw.put === "function" && typeof raw.delete === "function" && typeof raw.list === "function") {

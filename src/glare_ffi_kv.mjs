@@ -1,4 +1,4 @@
-import { Ok, Error } from "../gleam.mjs";
+import { Ok, Error } from "./gleam.mjs";
 
 export async function kv_get(namespace, key, options) {
   try {

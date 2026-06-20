@@ -1,4 +1,4 @@
-import { Ok, Error } from "../gleam.mjs";
+import { Ok, Error } from "./gleam.mjs";
 
 export async function r2_get(bucket, key) {
   try {

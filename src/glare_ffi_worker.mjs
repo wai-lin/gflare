@@ -1,4 +1,4 @@
-import { Ok, Error, List, NonEmpty, Empty } from "../gleam.mjs";
+import { Ok, Error, List, NonEmpty, Empty } from "./gleam.mjs";
 
 export function wait_until(ctx, promise) {
   ctx.waitUntil(promise);

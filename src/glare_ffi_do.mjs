@@ -1,4 +1,4 @@
-import { Ok, Error } from "../gleam.mjs";
+import { Ok, Error } from "./gleam.mjs";
 
 export function do_id_from_name(namespace, name) {
   return namespace.idFromName(name);
