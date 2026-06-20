@@ -1,5 +1,6 @@
 name = "glare"
 version = "0.1.0"
+target = "javascript"
 description = "Zero-glue Gleam framework for Cloudflare Workers"
 licences = ["MIT"]
 repository = { type = "github", user = "wai-lin", repo = "glare" }
