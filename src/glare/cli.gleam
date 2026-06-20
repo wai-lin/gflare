@@ -20,11 +20,9 @@ pub fn main() {
 }
 
 fn init_command() {
-  use <- glint.command_help("Create a new Cloudflare Workers project")
-  use name <- glint.named_arg("project name")
-  use named, _, _ <- glint.command()
-  let project_name = name(named)
-  init.run(project_name)
+  use <- glint.command_help("Initialize Cloudflare Workers in the current project")
+  use _, _, _ <- glint.command()
+  init.run()
 }
 
 fn build_command() {

@@ -11,8 +11,8 @@ Zero-glue Gleam framework for Cloudflare Workers. Write Gleam, deploy to Cloudfl
 # Add to your project
 gleam add glare
 
-# Create a new Cloudflare Workers project
-gleam run -m glare -- init my_worker
+# Initialize Cloudflare Workers in your project
+gleam run --target javascript -m glare -- init
 
 # Or add to an existing project, then:
 gleam run -m glare -- dev
@@ -36,7 +36,7 @@ pub fn fetch(request, env: Env, ctx: Context) {
 
 | Command | Description |
 |---------|-------------|
-| `gleam run -m glare -- init <name>` | Create a new project |
+| `gleam run --target javascript -m glare -- init` | Initialize Cloudflare Workers in current project |
 | `gleam run -m glare -- build` | Build for Cloudflare Workers |
 | `gleam run -m glare -- dev` | Build and start local dev server |
 | `gleam run -m glare -- deploy` | Build and deploy to Cloudflare |
