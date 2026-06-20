@@ -96,6 +96,7 @@ pub type R2ObjectResult {
   )
 }
 
+@external(erlang, "glare_ffi_r2", "r2_get")
 @external(javascript, "glare_ffi_r2.mjs", "r2_get")
 fn do_get(bucket: Bucket, key: String) -> Promise(Result(ObjectBody, String))
 
@@ -110,6 +111,7 @@ pub fn get(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_get_with_http_metadata")
 @external(javascript, "glare_ffi_r2.mjs", "r2_get_with_http_metadata")
 fn do_get_meta(bucket: Bucket, key: String) -> Promise(Result(Dynamic, String))
 
@@ -130,6 +132,7 @@ pub fn get_metadata(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_put")
 @external(javascript, "glare_ffi_r2.mjs", "r2_put")
 fn do_put(
   bucket: Bucket,
@@ -158,6 +161,7 @@ pub fn put(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_delete")
 @external(javascript, "glare_ffi_r2.mjs", "r2_delete")
 fn do_delete(bucket: Bucket, keys: List(String)) -> Promise(Result(Dynamic, String))
 
@@ -172,6 +176,7 @@ pub fn delete(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_list")
 @external(javascript, "glare_ffi_r2.mjs", "r2_list")
 fn do_list(bucket: Bucket, options: json.Json) -> Promise(Result(Dynamic, String))
 
@@ -193,6 +198,7 @@ pub fn list(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_head")
 @external(javascript, "glare_ffi_r2.mjs", "r2_head")
 fn do_head(bucket: Bucket, key: String) -> Promise(Result(Dynamic, String))
 
@@ -213,6 +219,7 @@ pub fn head(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_read_bytes")
 @external(javascript, "glare_ffi_r2.mjs", "r2_read_bytes")
 fn do_read_bytes(body: ObjectBody) -> Promise(Result(BitArray, String))
 
@@ -226,6 +233,7 @@ pub fn read_bytes(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_read_text")
 @external(javascript, "glare_ffi_r2.mjs", "r2_read_text")
 fn do_read_text(body: ObjectBody) -> Promise(Result(String, String))
 
@@ -239,6 +247,7 @@ pub fn read_text(
   }
 }
 
+@external(erlang, "glare_ffi_r2", "r2_read_json")
 @external(javascript, "glare_ffi_r2.mjs", "r2_read_json")
 fn do_read_json(body: ObjectBody) -> Promise(Result(Dynamic, String))
 

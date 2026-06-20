@@ -1,7 +1,7 @@
 name = "glare"
 version = "0.1.0"
 description = "Zero-glue Gleam framework for Cloudflare Workers"
-licence = "MIT"
+licences = ["MIT"]
 repository = { type = "github", user = "wai-lin", repo = "glare" }
 
 [dependencies]

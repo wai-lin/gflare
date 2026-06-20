@@ -16,6 +16,7 @@ pub fn id_from_name(
   do_id_from_name(namespace, name)
 }
 
+@external(erlang, "glare_ffi_do", "do_id_from_name")
 @external(javascript, "glare_ffi_do.mjs", "do_id_from_name")
 fn do_id_from_name(namespace: Namespace, name: String) -> Id
 
@@ -26,6 +27,7 @@ pub fn id_from_string(
   do_id_from_string(namespace, id)
 }
 
+@external(erlang, "glare_ffi_do", "do_id_from_string")
 @external(javascript, "glare_ffi_do.mjs", "do_id_from_string")
 fn do_id_from_string(namespace: Namespace, id: String) -> Id
 
@@ -33,6 +35,7 @@ pub fn get_stub(namespace: Namespace, id: Id) -> Stub {
   do_get_stub(namespace, id)
 }
 
+@external(erlang, "glare_ffi_do", "do_get_stub")
 @external(javascript, "glare_ffi_do.mjs", "do_get_stub")
 fn do_get_stub(namespace: Namespace, id: Id) -> Stub
 
@@ -48,6 +51,7 @@ pub fn fetch_options_with(method method: String, body body: Option(Json)) -> Fet
   FetchOptions(method:, body:)
 }
 
+@external(erlang, "glare_ffi_do", "do_fetch")
 @external(javascript, "glare_ffi_do.mjs", "do_fetch")
 fn do_fetch(
   stub: Stub,
@@ -74,6 +78,7 @@ pub fn fetch(
   }
 }
 
+@external(erlang, "glare_ffi_do", "do_get")
 @external(javascript, "glare_ffi_do.mjs", "do_get")
 fn do_get(stub: Stub) -> Promise(Result(Dynamic, String))
 
@@ -85,6 +90,7 @@ pub fn get(stub: Stub) -> Promise(Result(Dynamic, Error)) {
   }
 }
 
+@external(erlang, "glare_ffi_do", "do_set")
 @external(javascript, "glare_ffi_do.mjs", "do_set")
 fn do_set(stub: Stub, key: String, value: Json) -> Promise(Result(Dynamic, String))
 
@@ -100,6 +106,7 @@ pub fn set(
   }
 }
 
+@external(erlang, "glare_ffi_do", "do_delete")
 @external(javascript, "glare_ffi_do.mjs", "do_delete")
 fn do_delete_key(stub: Stub, key: String) -> Promise(Result(Dynamic, String))
 
@@ -114,6 +121,7 @@ pub fn delete_key(
   }
 }
 
+@external(erlang, "glare_ffi_do", "do_get_alarm")
 @external(javascript, "glare_ffi_do.mjs", "do_get_alarm")
 fn do_get_alarm(stub: Stub) -> Promise(Result(Dynamic, String))
 
@@ -132,6 +140,7 @@ pub fn get_alarm(
   }
 }
 
+@external(erlang, "glare_ffi_do", "do_set_alarm")
 @external(javascript, "glare_ffi_do.mjs", "do_set_alarm")
 fn do_set_alarm(stub: Stub, timestamp: Int) -> Promise(Result(Dynamic, String))
 
@@ -146,6 +155,7 @@ pub fn set_alarm(
   }
 }
 
+@external(erlang, "glare_ffi_do", "do_delete_alarm")
 @external(javascript, "glare_ffi_do.mjs", "do_delete_alarm")
 fn do_delete_alarm(stub: Stub) -> Promise(Result(Dynamic, String))
 
