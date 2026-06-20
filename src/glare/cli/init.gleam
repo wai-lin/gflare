@@ -27,8 +27,8 @@ pub fn run() -> Nil {
     Ok(_) -> {
       io.println("\nDone! Your project is ready for Cloudflare Workers.")
       io.println("\n  1. Edit your handler file to add Cloudflare Workers handlers")
-      io.println("  2. Run: gleam run --target javascript -m glare -- build")
-      io.println("  3. Run: gleam run --target javascript -m glare -- dev")
+      io.println("  2. Run: gleam run -m glare -- build")
+      io.println("  3. Run: gleam run -m glare -- dev")
     }
     Error(msg) -> {
       io.println_error("Error: " <> msg)

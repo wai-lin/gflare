@@ -12,7 +12,7 @@ Zero-glue Gleam framework for Cloudflare Workers. Write Gleam, deploy to Cloudfl
 gleam add glare
 
 # Initialize Cloudflare Workers in your project
-gleam run --target javascript -m glare -- init
+gleam run -m glare -- init
 
 # Or add to an existing project, then:
 gleam run -m glare -- dev
@@ -36,7 +36,7 @@ pub fn fetch(request, env: Env, ctx: Context) {
 
 | Command | Description |
 |---------|-------------|
-| `gleam run --target javascript -m glare -- init` | Initialize Cloudflare Workers in current project |
+| `gleam run -m glare -- init` | Initialize Cloudflare Workers in current project |
 | `gleam run -m glare -- build` | Build for Cloudflare Workers |
 | `gleam run -m glare -- dev` | Build and start local dev server |
 | `gleam run -m glare -- deploy` | Build and deploy to Cloudflare |
@@ -597,7 +597,7 @@ pub fn fetch(request, env: Env, ctx: Context) {
 ├─────────────────────────────────────────────────┤
 │  glare library (types, FFI, wrappers)           │
 ├─────────────────────────────────────────────────┤
-│  gleam build --target javascript                │
+│  gleam build                               │
 │  → outputs .mjs files in build/dev/javascript/  │
 ├─────────────────────────────────────────────────┤
 │  glare CLI (detects handlers, generates glue)   │
