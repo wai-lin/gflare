@@ -4,7 +4,7 @@ import gleeunit/should
 import gleam/list
 import gleam/option.{None, Some}
 import gflare/turso
-import gflare/turso/types.{type Value, type Row, type ExecuteResult}
+import gflare/turso/types
 
 pub fn main() {
   gleeunit.main()
