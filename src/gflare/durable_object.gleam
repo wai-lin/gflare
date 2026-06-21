@@ -3,7 +3,7 @@ import gleam/dynamic/decode
 import gleam/javascript/promise.{type Promise}
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
-import glare/error.{type Error, DurableObjectError}
+import gflare/error.{type Error, DurableObjectError}
 
 pub type Namespace
 pub type Id
@@ -16,7 +16,7 @@ pub fn id_from_name(
   do_id_from_name(namespace, name)
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_id_from_name")
+@external(javascript, "../gflare_ffi_do.mjs", "do_id_from_name")
 fn do_id_from_name(namespace: Namespace, name: String) -> Id
 
 pub fn id_from_string(
@@ -26,14 +26,14 @@ pub fn id_from_string(
   do_id_from_string(namespace, id)
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_id_from_string")
+@external(javascript, "../gflare_ffi_do.mjs", "do_id_from_string")
 fn do_id_from_string(namespace: Namespace, id: String) -> Id
 
 pub fn get_stub(namespace: Namespace, id: Id) -> Stub {
   do_get_stub(namespace, id)
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_get_stub")
+@external(javascript, "../gflare_ffi_do.mjs", "do_get_stub")
 fn do_get_stub(namespace: Namespace, id: Id) -> Stub
 
 pub type FetchOptions {
@@ -48,7 +48,7 @@ pub fn fetch_options_with(method method: String, body body: Option(Json)) -> Fet
   FetchOptions(method:, body:)
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_fetch")
+@external(javascript, "../gflare_ffi_do.mjs", "do_fetch")
 fn do_fetch(
   stub: Stub,
   path: String,
@@ -74,7 +74,7 @@ pub fn fetch(
   }
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_get")
+@external(javascript, "../gflare_ffi_do.mjs", "do_get")
 fn do_get(stub: Stub) -> Promise(Result(Dynamic, String))
 
 pub fn get(stub: Stub) -> Promise(Result(Dynamic, Error)) {
@@ -85,7 +85,7 @@ pub fn get(stub: Stub) -> Promise(Result(Dynamic, Error)) {
   }
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_set")
+@external(javascript, "../gflare_ffi_do.mjs", "do_set")
 fn do_set(stub: Stub, key: String, value: Json) -> Promise(Result(Dynamic, String))
 
 pub fn set(
@@ -100,7 +100,7 @@ pub fn set(
   }
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_delete")
+@external(javascript, "../gflare_ffi_do.mjs", "do_delete")
 fn do_delete_key(stub: Stub, key: String) -> Promise(Result(Dynamic, String))
 
 pub fn delete_key(
@@ -114,7 +114,7 @@ pub fn delete_key(
   }
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_get_alarm")
+@external(javascript, "../gflare_ffi_do.mjs", "do_get_alarm")
 fn do_get_alarm(stub: Stub) -> Promise(Result(Dynamic, String))
 
 pub fn get_alarm(
@@ -132,7 +132,7 @@ pub fn get_alarm(
   }
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_set_alarm")
+@external(javascript, "../gflare_ffi_do.mjs", "do_set_alarm")
 fn do_set_alarm(stub: Stub, timestamp: Int) -> Promise(Result(Dynamic, String))
 
 pub fn set_alarm(
@@ -146,7 +146,7 @@ pub fn set_alarm(
   }
 }
 
-@external(javascript, "../glare_ffi_do.mjs", "do_delete_alarm")
+@external(javascript, "../gflare_ffi_do.mjs", "do_delete_alarm")
 fn do_delete_alarm(stub: Stub) -> Promise(Result(Dynamic, String))
 
 pub fn delete_alarm(stub: Stub) -> Promise(Result(Nil, Error)) {

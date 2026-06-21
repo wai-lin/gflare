@@ -1,7 +1,7 @@
 import gleeunit
 import gleeunit/should
 
-import glare/error
+import gflare/error
 
 pub fn main() {
   gleeunit.main()

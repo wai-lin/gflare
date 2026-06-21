@@ -4,7 +4,7 @@ import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
-import glare/error.{type Error, R2Error}
+import gflare/error.{type Error, R2Error}
 
 pub type Bucket
 pub type ObjectBody
@@ -96,7 +96,7 @@ pub type R2ObjectResult {
   )
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_get")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_get")
 fn do_get(bucket: Bucket, key: String) -> Promise(Result(ObjectBody, String))
 
 pub fn get(
@@ -110,7 +110,7 @@ pub fn get(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_get_with_http_metadata")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_get_with_http_metadata")
 fn do_get_meta(bucket: Bucket, key: String) -> Promise(Result(Dynamic, String))
 
 pub fn get_metadata(
@@ -130,7 +130,7 @@ pub fn get_metadata(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_put")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_put")
 fn do_put(
   bucket: Bucket,
   key: String,
@@ -158,7 +158,7 @@ pub fn put(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_delete")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_delete")
 fn do_delete(bucket: Bucket, keys: List(String)) -> Promise(Result(Dynamic, String))
 
 pub fn delete(
@@ -172,7 +172,7 @@ pub fn delete(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_list")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_list")
 fn do_list(bucket: Bucket, options: json.Json) -> Promise(Result(Dynamic, String))
 
 pub fn list(
@@ -193,7 +193,7 @@ pub fn list(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_head")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_head")
 fn do_head(bucket: Bucket, key: String) -> Promise(Result(Dynamic, String))
 
 pub fn head(
@@ -213,7 +213,7 @@ pub fn head(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_read_bytes")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_read_bytes")
 fn do_read_bytes(body: ObjectBody) -> Promise(Result(BitArray, String))
 
 pub fn read_bytes(
@@ -226,7 +226,7 @@ pub fn read_bytes(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_read_text")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_read_text")
 fn do_read_text(body: ObjectBody) -> Promise(Result(String, String))
 
 pub fn read_text(
@@ -239,7 +239,7 @@ pub fn read_text(
   }
 }
 
-@external(javascript, "../glare_ffi_r2.mjs", "r2_read_json")
+@external(javascript, "../gflare_ffi_r2.mjs", "r2_read_json")
 fn do_read_json(body: ObjectBody) -> Promise(Result(Dynamic, String))
 
 pub fn read_json(

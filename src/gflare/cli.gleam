@@ -1,12 +1,12 @@
 import argv
 import glint
-import glare/cli/build
-import glare/cli/init
+import gflare/cli/build
+import gflare/cli/init
 
 pub fn main() {
   let app =
     glint.new()
-    |> glint.with_name("glare")
+    |> glint.with_name("gflare")
     |> glint.as_module
     |> glint.global_help("Zero-glue Gleam framework for Cloudflare Workers")
     |> glint.add(at: [], do: build_command())

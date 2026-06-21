@@ -2,7 +2,7 @@ import gleeunit
 import gleeunit/should
 
 import gleam/dict
-import glare/cli/toml_utils
+import gflare/cli/toml_utils
 
 pub fn main() {
   gleeunit.main()

@@ -1,7 +1,7 @@
 import gleeunit
 
 import gleam/json
-import glare/response
+import gflare/response
 
 pub fn main() {
   gleeunit.main()

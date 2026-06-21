@@ -1,4 +1,4 @@
-import glare/cli
+import gflare/cli
 
 pub fn main() {
   cli.main()

@@ -5,8 +5,8 @@ import gleam/int
 import gleam/list
 import gleam/string
 import simplifile
-import glare/cli/handlers
-import glare/cli/toml_utils
+import gflare/cli/handlers
+import gflare/cli/toml_utils
 
 pub fn main() {
   gleeunit.main()
@@ -55,7 +55,7 @@ pub fn detect_handlers_from_complex_mjs_test() {
   let mjs =
     "import * as $option from \"../../gleam_stdlib/gleam/option.mjs\";\n"
     <> "import { Some, None } from \"../../gleam_stdlib/gleam/option.mjs\";\n"
-    <> "import { KvError } from \"../glare/error.mjs\";\n"
+    <> "import { KvError } from \"../gflare/error.mjs\";\n"
     <> "import { Ok, Error } from \"../gleam.mjs\";\n"
     <> "\n"
     <> "export function fetch(request, env, ctx) {\n"
@@ -98,7 +98,7 @@ pub fn parse_realistic_gleam_toml_test() {
     <> "\n"
     <> "[dependencies]\n"
     <> "gleam_stdlib = \">= 1.0.0 and < 2.0.0\"\n"
-    <> "glare = \">= 0.1.0 and < 1.0.0\"\n"
+    <> "gflare = \">= 0.1.0 and < 1.0.0\"\n"
     <> "\n"
     <> "[cloudflare]\n"
     <> "name = \"my-worker\"\n"

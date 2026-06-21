@@ -3,8 +3,8 @@ import gleeunit/should
 
 import gleam/list
 import gleam/option.{None, Some}
-import glare/turso
-import glare/turso/types.{type Value, type Row, type ExecuteResult}
+import gflare/turso
+import gflare/turso/types.{type Value, type Row, type ExecuteResult}
 
 pub fn main() {
   gleeunit.main()

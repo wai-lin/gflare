@@ -1,7 +1,7 @@
 import gleeunit
 import gleeunit/should
 
-import glare/cli/handlers
+import gflare/cli/handlers
 
 pub fn main() {
   gleeunit.main()

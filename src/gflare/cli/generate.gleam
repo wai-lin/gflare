@@ -3,7 +3,7 @@ import gleam/list
 import gleam/result
 import gleam/string
 import simplifile
-import glare/cli/toml_utils.{type Config, type DoClass}
+import gflare/cli/toml_utils.{type Config, type DoClass}
 
 @external(javascript, "../ffi.mjs", "generate_uuid")
 fn generate_uuid() -> String

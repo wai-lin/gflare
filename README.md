@@ -1,30 +1,30 @@
-# glare
+# gflare
 
 Zero-glue Gleam framework for Cloudflare Workers. Write Gleam, deploy to Cloudflare — no `index.js`, no `wrangler.toml` editing, no JavaScript.
 
-[![Package Version](https://img.shields.io/hexpm/v/glare)](https://hex.pm/packages/glare)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glare)
+[![Package Version](https://img.shields.io/hexpm/v/gflare)](https://hex.pm/packages/gflare)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/gflare)
 
 ## Quick Start
 
 ```bash
 # Add to your project
-gleam add glare
+gleam add gflare
 
 # Initialize Cloudflare Workers in your project
-gleam run -m glare -- init
+gleam run -m gflare -- init
 
 # Or add to an existing project, then:
-gleam run -m glare -- dev
+gleam run -m gflare -- dev
 ```
 
 ### Minimal Example
 
 ```gleam
-import glare/bindings.{type Env}
-import glare/worker.{type Context}
-import glare/request.{type HttpRequest}
-import glare/response
+import gflare/bindings.{type Env}
+import gflare/worker.{type Context}
+import gflare/request.{type HttpRequest}
+import gflare/response
 
 pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {
   response.new(200)
@@ -37,11 +37,11 @@ pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {
 
 | Command | Description |
 |---------|-------------|
-| `gleam run -m glare -- init` | Initialize Cloudflare Workers in current project |
-| `gleam run -m glare -- build` | Build for Cloudflare Workers |
-| `gleam run -m glare -- dev` | Build and start local dev server |
-| `gleam run -m glare -- deploy` | Build and deploy to Cloudflare |
-| `gleam run -m glare -- --help` | Show help |
+| `gleam run -m gflare -- init` | Initialize Cloudflare Workers in current project |
+| `gleam run -m gflare -- build` | Build for Cloudflare Workers |
+| `gleam run -m gflare -- dev` | Build and start local dev server |
+| `gleam run -m gflare -- deploy` | Build and deploy to Cloudflare |
+| `gleam run -m gflare -- --help` | Show help |
 
 ## Configuration
 
@@ -77,7 +77,7 @@ ENVIRONMENT = "production"
 All bindings are resolved from the Cloudflare Worker `env` object:
 
 ```gleam
-import glare/bindings
+import gflare/bindings
 
 pub fn fetch(request, env: Env, ctx: Context) {
   let assert Ok(cache) = bindings.kv(env, "CACHE")
@@ -94,7 +94,7 @@ pub fn fetch(request, env: Env, ctx: Context) {
 ### KV (Key-Value Storage)
 
 ```gleam
-import glare/kv
+import gflare/kv
 
 pub fn fetch(request, env: Env, ctx: Context) {
   let assert Ok(cache) = bindings.kv(env, "CACHE")
@@ -139,7 +139,7 @@ pub fn put_example(cache) {
 ### D1 (SQLite Database)
 
 ```gleam
-import glare/d1
+import gflare/d1
 import gleam/dynamic/decode
 
 // Define a decoder for your query results
@@ -215,7 +215,7 @@ pub fn run_raw_sql(request, env: Env, ctx: Context) {
 Turso uses only `fetch` — no npm packages needed. Perfect for Cloudflare Workers.
 
 ```gleam
-import glare/turso
+import gflare/turso
 
 pub fn fetch(request, env: Env, ctx: Context) {
   // Read config from environment variables
@@ -284,7 +284,7 @@ pub fn transaction_example(request, env: Env, ctx: Context) {
 ### R2 (Object Storage)
 
 ```gleam
-import glare/r2
+import gflare/r2
 
 pub fn get_file(request, env: Env, ctx: Context) {
   let assert Ok(bucket) = bindings.r2(env, "ASSETS")
@@ -370,7 +370,7 @@ pub fn file_metadata(request, env: Env, ctx: Context) {
 ### Queues (Message Queue)
 
 ```gleam
-import glare/queue
+import gflare/queue
 import gleam/json
 
 // Producer: send messages
@@ -416,7 +416,7 @@ pub fn queue(batch, env: Env, ctx: Context) {
 ### Durable Objects
 
 ```gleam
-import glare/durable_object
+import gflare/durable_object
 
 pub fn fetch(request, env: Env, ctx: Context) {
   let assert Ok(ns) = bindings.durable_object(env, "COUNTER")
@@ -457,7 +457,7 @@ pub fn schedule_alarm(request, env: Env, ctx: Context) {
 ### Worker Context
 
 ```gleam
-import glare/worker
+import gflare/worker
 
 pub fn fetch(request, env: Env, ctx: Context) {
   // Extend worker lifetime for background work
@@ -474,7 +474,7 @@ pub fn fetch(request, env: Env, ctx: Context) {
 ### Request Helpers
 
 ```gleam
-import glare/request
+import gflare/request
 
 pub fn handler(request, env: Env, ctx: Context) {
   let url = request.url(request)
@@ -509,7 +509,7 @@ pub fn handler(request, env: Env, ctx: Context) {
 ### Response Helpers
 
 ```gleam
-import glare/response
+import gflare/response
 import gleam/json
 
 // Text response
@@ -540,7 +540,7 @@ response.new(200)
 ### JSON Utilities
 
 ```gleam
-import glare/json_util
+import gflare/json_util
 import gleam/json
 
 // Create JSON objects (filters out null values)
@@ -573,10 +573,10 @@ let decoder = {
 
 ### Error Handling
 
-All binding operations return `Result(T, glare/error.Error)`:
+All binding operations return `Result(T, gflare/error.Error)`:
 
 ```gleam
-import glare/error
+import gflare/error
 
 case result {
   Ok(value) -> // use value
@@ -598,14 +598,14 @@ case result {
 A complete worker with KV caching, D1 database, and Turso:
 
 ```gleam
-import glare/bindings.{type Env}
-import glare/worker.{type Context}
-import glare/request.{type HttpRequest}
-import glare/response
-import glare/kv
-import glare/d1
-import glare/turso
-import glare/json_util
+import gflare/bindings.{type Env}
+import gflare/worker.{type Context}
+import gflare/request.{type HttpRequest}
+import gflare/response
+import gflare/kv
+import gflare/d1
+import gflare/turso
+import gflare/json_util
 import gleam/dynamic/decode
 import gleam/json
 import gleam/list
@@ -674,12 +674,12 @@ pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {
 ┌─────────────────────────────────────────────────┐
 │  Your Gleam code (handlers + binding calls)     │
 ├─────────────────────────────────────────────────┤
-│  glare library (types, FFI, wrappers)           │
+│  gflare library (types, FFI, wrappers)           │
 ├─────────────────────────────────────────────────┤
 │  gleam build                               │
 │  → outputs .mjs files in build/dev/javascript/  │
 ├─────────────────────────────────────────────────┤
-│  glare CLI (detects handlers, generates glue)   │
+│  gflare CLI (detects handlers, generates glue)   │
 │  → generates index.js + wrangler.toml           │
 ├─────────────────────────────────────────────────┤
 │  esbuild (bundles into single file)             │

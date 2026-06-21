@@ -27,8 +27,8 @@ pub fn run() -> Nil {
     Ok(_) -> {
       io.println("\nDone! Your project is ready for Cloudflare Workers.")
       io.println("\n  1. Edit your handler file to add Cloudflare Workers handlers")
-      io.println("  2. Run: gleam run -m glare -- build")
-      io.println("  3. Run: gleam run -m glare -- dev")
+      io.println("  2. Run: gleam run -m gflare -- build")
+      io.println("  3. Run: gleam run -m gflare -- dev")
     }
     Error(msg) -> {
       io.println_error("Error: " <> msg)
@@ -87,10 +87,10 @@ fn write_handler(package_name: String) -> Result(Nil, String) {
     }
     _ -> {
       let content =
-        "import glare/bindings.{type Env}\n"
-        <> "import glare/request.{type HttpRequest}\n"
-        <> "import glare/response\n"
-        <> "import glare/worker.{type Context}\n"
+        "import gflare/bindings.{type Env}\n"
+        <> "import gflare/request.{type HttpRequest}\n"
+        <> "import gflare/response\n"
+        <> "import gflare/worker.{type Context}\n"
         <> "import gleam/javascript/promise\n"
         <> "\n"
         <> "pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {\n"

@@ -4,9 +4,9 @@ import gleam/result
 import gleam/string
 import shellout
 import simplifile
-import glare/cli/toml_utils
-import glare/cli/handlers
-import glare/cli/generate
+import gflare/cli/toml_utils
+import gflare/cli/handlers
+import gflare/cli/generate
 
 pub fn run(deploy deployment: Bool, dev development: Bool) -> Nil {
   let result = do_build(deployment, development)

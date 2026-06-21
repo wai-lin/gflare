@@ -84,10 +84,10 @@ pub fn init_creates_handler_file_test() {
   let _ = simplifile.write(to: dir <> "/gleam.toml", contents: gleam_toml)
 
   let handler_content =
-    "import glare/bindings.{type Env}\n"
-    <> "import glare/request.{type HttpRequest}\n"
-    <> "import glare/response\n"
-    <> "import glare/worker.{type Context}\n"
+    "import gflare/bindings.{type Env}\n"
+    <> "import gflare/request.{type HttpRequest}\n"
+    <> "import gflare/response\n"
+    <> "import gflare/worker.{type Context}\n"
     <> "import gleam/javascript/promise\n"
     <> "\n"
     <> "pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {\n"
@@ -180,10 +180,10 @@ pub fn full_init_workflow_test() {
   let assert Ok(_) = simplifile.append(to: dir <> "/gleam.toml", contents: section)
 
   let handler =
-    "import glare/bindings.{type Env}\n"
-    <> "import glare/request.{type HttpRequest}\n"
-    <> "import glare/response\n"
-    <> "import glare/worker.{type Context}\n"
+    "import gflare/bindings.{type Env}\n"
+    <> "import gflare/request.{type HttpRequest}\n"
+    <> "import gflare/response\n"
+    <> "import gflare/worker.{type Context}\n"
     <> "import gleam/javascript/promise\n"
     <> "\n"
     <> "pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {\n"
@@ -212,10 +212,10 @@ pub fn handler_file_has_correct_imports_test() {
   let _ = simplifile.create_directory_all(dir <> "/src")
 
   let handler =
-    "import glare/bindings.{type Env}\n"
-    <> "import glare/request.{type HttpRequest}\n"
-    <> "import glare/response\n"
-    <> "import glare/worker.{type Context}\n"
+    "import gflare/bindings.{type Env}\n"
+    <> "import gflare/request.{type HttpRequest}\n"
+    <> "import gflare/response\n"
+    <> "import gflare/worker.{type Context}\n"
     <> "import gleam/javascript/promise\n"
     <> "\n"
     <> "pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {\n"
@@ -228,13 +228,13 @@ pub fn handler_file_has_correct_imports_test() {
 
   let assert Ok(content) = simplifile.read(dir <> "/src/test.gleam")
   content
-  |> string.contains("import glare/bindings.{type Env}")
+  |> string.contains("import gflare/bindings.{type Env}")
   |> should.be_true
   content
-  |> string.contains("import glare/request.{type HttpRequest}")
+  |> string.contains("import gflare/request.{type HttpRequest}")
   |> should.be_true
   content
-  |> string.contains("import glare/worker.{type Context}")
+  |> string.contains("import gflare/worker.{type Context}")
   |> should.be_true
 
   let _ = simplifile.delete(dir)

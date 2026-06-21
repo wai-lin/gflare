@@ -2,9 +2,9 @@ import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/javascript/promise.{type Promise}
 import gleam/result
-import glare/error.{type Error, EncodingError}
-import glare/turso/config
-import glare/turso/types.{type BatchMode, type ExecuteResult, type Value, Blob, Float, Integer, Null, Text}
+import gflare/error.{type Error, EncodingError}
+import gflare/turso/config
+import gflare/turso/types.{type BatchMode, type ExecuteResult, type Value, Blob, Float, Integer, Null, Text}
 
 pub type Config =
   config.Config
@@ -33,21 +33,21 @@ pub fn null_value() -> Value {
   Null
 }
 
-@external(javascript, "../glare_ffi_turso.mjs", "turso_execute")
+@external(javascript, "../gflare_ffi_turso.mjs", "turso_execute")
 fn do_execute(
   config: Config,
   sql: String,
   args: List(Value),
 ) -> Promise(Dynamic)
 
-@external(javascript, "../glare_ffi_turso.mjs", "turso_batch")
+@external(javascript, "../gflare_ffi_turso.mjs", "turso_batch")
 fn do_batch(
   config: Config,
   statements: List(#(String, List(Value))),
   mode: BatchMode,
 ) -> Promise(Dynamic)
 
-@external(javascript, "../glare_ffi_turso.mjs", "turso_transaction")
+@external(javascript, "../gflare_ffi_turso.mjs", "turso_transaction")
 fn do_transaction(
   config: Config,
   statements: List(#(String, List(Value))),

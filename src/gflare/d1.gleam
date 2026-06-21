@@ -2,7 +2,7 @@ import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/javascript/promise.{type Promise}
 import gleam/option.{type Option, None}
-import glare/error.{type Error, D1Error}
+import gflare/error.{type Error, D1Error}
 
 pub type Database
 pub type PreparedStatement
@@ -33,16 +33,16 @@ pub type D1ExecResult {
   )
 }
 
-@external(javascript, "../glare_ffi_d1.mjs", "d1_prepare")
+@external(javascript, "../gflare_ffi_d1.mjs", "d1_prepare")
 pub fn prepare(db: Database, query: String) -> PreparedStatement
 
-@external(javascript, "../glare_ffi_d1.mjs", "d1_bind")
+@external(javascript, "../gflare_ffi_d1.mjs", "d1_bind")
 pub fn bind(
   statement: PreparedStatement,
   values: List(Dynamic),
 ) -> PreparedStatement
 
-@external(javascript, "../glare_ffi_d1.mjs", "d1_run")
+@external(javascript, "../gflare_ffi_d1.mjs", "d1_run")
 fn do_run(statement: PreparedStatement) -> Promise(Result(Dynamic, String))
 
 pub fn run(
@@ -61,7 +61,7 @@ pub fn run(
   }
 }
 
-@external(javascript, "../glare_ffi_d1.mjs", "d1_first")
+@external(javascript, "../gflare_ffi_d1.mjs", "d1_first")
 fn do_first(statement: PreparedStatement) -> Promise(Result(Dynamic, String))
 
 pub fn first(
@@ -79,7 +79,7 @@ pub fn first(
   }
 }
 
-@external(javascript, "../glare_ffi_d1.mjs", "d1_all")
+@external(javascript, "../gflare_ffi_d1.mjs", "d1_all")
 fn do_all(statement: PreparedStatement) -> Promise(Result(Dynamic, String))
 
 pub fn all(
@@ -98,7 +98,7 @@ pub fn all(
   }
 }
 
-@external(javascript, "../glare_ffi_d1.mjs", "d1_exec")
+@external(javascript, "../gflare_ffi_d1.mjs", "d1_exec")
 fn do_exec(db: Database, query: String) -> Promise(Result(Dynamic, String))
 
 pub fn exec(

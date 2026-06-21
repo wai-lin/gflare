@@ -3,7 +3,7 @@ import gleeunit/should
 
 import gleam/json
 import gleam/option.{None, Some}
-import glare/json_util
+import gflare/json_util
 
 pub fn main() {
   gleeunit.main()
