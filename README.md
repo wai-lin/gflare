@@ -21,11 +21,12 @@ gleam run -m glare -- dev
 ### Minimal Example
 
 ```gleam
-import glare.{type Context, type Env}
-import glare/bindings
+import glare/bindings.{type Env}
+import glare/worker.{type Context}
+import glare/request.{type HttpRequest}
 import glare/response
 
-pub fn fetch(request, env: Env, ctx: Context) {
+pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {
   response.new(200)
   |> response.set_body("Hello from Gleam!")
   |> promise.resolve
@@ -594,17 +595,21 @@ case result {
 
 ## Full Example
 
-A complete worker with KV caching and D1 database:
+A complete worker with KV caching, D1 database, and Turso:
 
 ```gleam
-import glare.{type Context, type Env}
-import glare/bindings
+import glare/bindings.{type Env}
+import glare/worker.{type Context}
+import glare/request.{type HttpRequest}
+import glare/response
 import glare/kv
 import glare/d1
-import glare/response
+import glare/turso
+import glare/json_util
 import gleam/dynamic/decode
 import gleam/json
 import gleam/list
+import gleam/option.{None, Some}
 
 pub type User {
   User(id: Int, name: String, email: String)
@@ -625,33 +630,35 @@ fn user_to_json(user: User) -> json.Json {
   ])
 }
 
-pub fn fetch(request, env: Env, ctx: Context) {
+pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {
   let assert Ok(cache) = bindings.kv(env, "CACHE")
-  let assert Ok(db) = bindings.d1(env, "DB")
 
-  // Try cache first
+  // Try KV cache first
   use cached <- promise.await(kv.get(cache, "users"))
   case cached {
     Ok(json_str) -> {
+      // Cache hit — return cached data
       let assert Ok(data) = json_util.parse(json_str)
       response.new(200) |> response.json(data) |> promise.resolve
     }
     Error(_) -> {
-      // Cache miss — query D1
-      let stmt = d1.prepare(db, "SELECT * FROM users")
-      use result <- promise.await(d1.all(stmt))
+      // Cache miss — query Turso (better for transactions than D1)
+      let assert Ok(url) = bindings.var(env, "TURSO_DATABASE_URL")
+      let assert Ok(token) = bindings.secret(env, "TURSO_AUTH_TOKEN")
+      let config = turso.connect(url, token)
+
+      use result <- promise.await(turso.execute(config, "SELECT * FROM users", []))
       case result {
         Ok(result) -> {
-          let users = list.filter_map(result.results, fn(row) {
-            case decode.run(row, user_decoder()) {
-              Ok(user) -> Ok(user)
-              Error(_) -> Error(Nil)
-            }
-          })
+          let users =
+            list.map(result.rows, fn(row) {
+              let assert Ok(user) = decode.run(user_decoder(), decode.dynamic)
+              user
+            })
           let json_data = json.array(users, user_to_json)
           // Cache for 5 minutes
           let cache_opts = kv.put_options_with(expiration: None, expiration_ttl: Some(300))
-          use _ <- promise.await(kv.put(cache, "users", json.string(json_data), cache_opts))
+          use _ <- promise.await(kv.put(cache, "users", json_util.sparse([#("data", json_data)]), cache_opts))
           response.new(200) |> response.json(json_data) |> promise.resolve
         }
         Error(e) -> response.new(500) |> response.set_body(error.to_string(e)) |> promise.resolve

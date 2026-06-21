@@ -1,4 +1,4 @@
-import { Ok, Error, List, NonEmpty, Empty, toList } from "./gleam.mjs";
+import { Ok, Error, toList } from "./gleam.mjs";
 
 function encodeValue(value) {
   if (value === "Null") {
@@ -61,7 +61,7 @@ function decodeRow(row, columns) {
 function decodeResult(data) {
   const results = data.results || [];
   const executeResult = results.find(
-    (r) => r.type === "ok" && r.response?.type === "execute"
+    (r) => r.type === "ok" && r.response?.type === "execute",
   );
   if (!executeResult) {
     return new Error("No execute result found");
@@ -100,10 +100,7 @@ export async function turso_execute(config, sql, argsList) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        requests: [
-          { type: "execute", stmt: { sql, args } },
-          { type: "close" },
-        ],
+        requests: [{ type: "execute", stmt: { sql, args } }, { type: "close" }],
       }),
     });
     const data = await response.json();
