@@ -5,10 +5,10 @@ import gleam/http/request
 import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/list
-import gleam/option.{type Option, None, Some}
+import gleam/option.{None, Some}
 import gleam/result
 import gflare/turso/config
-import gflare/turso/error.{type TursoError, ApiError, DecodeError, NetworkError}
+import gflare/turso/error.{type TursoError, DecodeError, NetworkError}
 import gflare/turso/types.{type ExecuteResult, type Value, Blob, Float, Integer, Null, Text}
 
 pub type Config =
@@ -111,7 +111,7 @@ fn encode_batch_pipeline(statements: List(#(String, List(Value)))) -> String {
         #("stmt", json.object([#("sql", json.string(sql)), #("args", args_json)])),
       ])
     })
-  let close = json.object([#("type", json.string("close"))])
+  let _close = json.object([#("type", json.string("close"))])
   json.to_string(json.object([#("requests", json.array(requests, fn(x) { x }))]))
 }
 

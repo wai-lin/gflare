@@ -721,12 +721,12 @@ pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {
 ┌─────────────────────────────────────────────────┐
 │  Your Gleam code (handlers + binding calls)     │
 ├─────────────────────────────────────────────────┤
-│  gflare library (types, FFI, wrappers)           │
+│  gflare library (types, FFI, wrappers)          │
 ├─────────────────────────────────────────────────┤
-│  gleam build                               │
+│  gleam build                                    │
 │  → outputs .mjs files in build/dev/javascript/  │
 ├─────────────────────────────────────────────────┤
-│  gflare CLI (detects handlers, generates glue)   │
+│  gflare CLI (detects handlers, generates glue)  │
 │  → generates index.js + wrangler.toml           │
 ├─────────────────────────────────────────────────┤
 │  esbuild (bundles into single file)             │
