@@ -67,6 +67,8 @@ classes = [
 ENVIRONMENT = "production"
 ```
 
+> **Note:** Turso doesn't need a binding — just pass URL and token directly via `turso.connect()` or read from env vars with `bindings.var()`/`bindings.secret()`.
+
 ## Bindings
 
 ### Bindings Resolution
@@ -205,6 +207,76 @@ pub fn run_raw_sql(request, env: Env, ctx: Context) {
   // Execute raw SQL
   use result <- promise.await(d1.exec(db, "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)"))
   response.new(200) |> response.set_body("OK") |> promise.resolve
+}
+
+### Turso (Database over HTTP)
+
+Turso uses only `fetch` — no npm packages needed. Perfect for Cloudflare Workers.
+
+```gleam
+import glare/turso
+
+pub fn fetch(request, env: Env, ctx: Context) {
+  // Read config from environment variables
+  let assert Ok(url) = bindings.var(env, "TURSO_DATABASE_URL")
+  let assert Ok(token) = bindings.secret(env, "TURSO_AUTH_TOKEN")
+  let config = turso.connect(url, token)
+
+  // Simple query
+  use result <- promise.await(turso.execute(config, "SELECT * FROM users", []))
+  case result {
+    Ok(result) -> {
+      // result.rows contains the rows
+      // result.columns contains column names
+      // result.rows_affected contains affected row count
+      response.new(200) |> response.set_body("Found users") |> promise.resolve
+    }
+    Error(e) -> response.new(500) |> response.set_body(error.to_string(e)) |> promise.resolve
+  }
+}
+
+pub fn query_with_params(request, env: Env, ctx: Context) {
+  let assert Ok(url) = bindings.var(env, "TURSO_DATABASE_URL")
+  let assert Ok(token) = bindings.secret(env, "TURSO_AUTH_TOKEN")
+  let config = turso.connect(url, token)
+
+  // Query with parameters
+  use result <- promise.await(turso.execute(
+    config,
+    "SELECT * FROM users WHERE id = ?",
+    [turso.int(42)],
+  ))
+  // Handle result...
+}
+
+pub fn batch_example(request, env: Env, ctx: Context) {
+  let assert Ok(url) = bindings.var(env, "TURSO_DATABASE_URL")
+  let assert Ok(token) = bindings.secret(env, "TURSO_AUTH_TOKEN")
+  let config = turso.connect(url, token)
+
+  // Batch execution
+  use result <- promise.await(turso.batch(
+    config,
+    [
+      #("INSERT INTO users (name) VALUES (?)", [turso.text("Alice")]),
+      #("INSERT INTO users (name) VALUES (?)", [turso.text("Bob")]),
+    ],
+    turso.Write,
+  ))
+  // Handle result...
+}
+
+pub fn transaction_example(request, env: Env, ctx: Context) {
+  let assert Ok(url) = bindings.var(env, "TURSO_DATABASE_URL")
+  let assert Ok(token) = bindings.secret(env, "TURSO_AUTH_TOKEN")
+  let config = turso.connect(url, token)
+
+  // Transaction (rolls back on any error)
+  use result <- promise.await(turso.transaction(config, [
+    #("UPDATE accounts SET balance = balance - 100 WHERE id = 1", []),
+    #("UPDATE accounts SET balance = balance + 100 WHERE id = 2", []),
+  ]))
+  // Handle result...
 }
 ```
 
