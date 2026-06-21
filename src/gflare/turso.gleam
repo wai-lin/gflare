@@ -111,8 +111,8 @@ fn encode_batch_pipeline(statements: List(#(String, List(Value)))) -> String {
         #("stmt", json.object([#("sql", json.string(sql)), #("args", args_json)])),
       ])
     })
-  let _close = json.object([#("type", json.string("close"))])
-  json.to_string(json.object([#("requests", json.array(requests, fn(x) { x }))]))
+  let close = json.object([#("type", json.string("close"))])
+  json.to_string(json.object([#("requests", json.array(list.append(requests, [close]), fn(x) { x }))]))
 }
 
 fn decode_pipeline_response(body: String) -> Result(ExecuteResult, String) {
