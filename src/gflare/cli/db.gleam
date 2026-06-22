@@ -7,7 +7,6 @@ import gflare/cli/db/generate
 import gflare/cli/db/parse_sql
 import gflare/cli/db/types.{D1, Turso}
 import gflare/cli/toml_utils
-import gflare/migrate
 import simplifile
 
 pub fn run() -> Nil {
@@ -149,7 +148,6 @@ fn run_migrations(args: List(String)) -> Nil {
     ["--turso", ..] -> Turso
     _ -> D1
   }
-  let migrations_dir = "db/migrations"
 
   case backend {
     D1 -> {

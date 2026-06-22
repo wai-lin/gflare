@@ -1,4 +1,3 @@
-import gleam/io
 import gleam/list
 import gleam/order.{type Order, Eq, Gt, Lt}
 import gleam/result

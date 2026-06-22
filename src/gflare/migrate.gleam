@@ -7,7 +7,7 @@ import gflare/d1
 import gflare/error
 import gflare/migrate/parse.{type Migration}
 import gflare/turso
-import gflare/turso/error.{type TursoError} as turso_error
+import gflare/turso/error as turso_err
 import gflare/turso/types as turso_types
 
 const tracking_table = "_gflare_migrations"
@@ -57,7 +57,7 @@ fn ensure_tracking_table_turso(
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
     Error(e) ->
-      promise.resolve(Error("Failed to create tracking table: " <> turso_error.to_string(e)))
+      promise.resolve(Error("Failed to create tracking table: " <> turso_err.to_string(e)))
   }
 }
 
@@ -91,7 +91,7 @@ fn list_applied_turso(
       promise.resolve(Ok(names))
     }
     Error(e) ->
-      promise.resolve(Error("Failed to list applied migrations: " <> turso_error.to_string(e)))
+      promise.resolve(Error("Failed to list applied migrations: " <> turso_err.to_string(e)))
   }
 }
 
@@ -149,7 +149,7 @@ fn execute_migrations_turso(
         }
         Error(e) ->
           promise.resolve(
-            Error("Failed to apply migration " <> migration.name <> ": " <> turso_error.to_string(e)),
+            Error("Failed to apply migration " <> migration.name <> ": " <> turso_err.to_string(e)),
           )
       }
     }
@@ -166,7 +166,7 @@ fn record_migration_turso(
     Ok(_) -> promise.resolve(Ok(Nil))
     Error(e) ->
       promise.resolve(
-        Error("Failed to record migration " <> name <> ": " <> turso_error.to_string(e)),
+        Error("Failed to record migration " <> name <> ": " <> turso_err.to_string(e)),
       )
   }
 }
