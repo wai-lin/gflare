@@ -1,12 +1,16 @@
 import argv
 import gleam/io
 import gleam/list
+import gleam/option.{None, Some}
 import gleam/order.{type Order, Eq, Gt, Lt}
 import gleam/string
 import gflare/cli/db/generate
 import gflare/cli/db/parse_sql
 import gflare/cli/db/types.{D1, Turso}
 import gflare/cli/toml_utils
+import gflare/env
+import gflare/migrate
+import gflare/turso
 import simplifile
 
 pub fn run() -> Nil {
@@ -152,12 +156,39 @@ fn run_migrations(args: List(String)) -> Nil {
   case backend {
     D1 -> {
       io.println("Running migrations for D1...")
-      io.println("Note: D1 migrations require a running D1 database.")
-      io.println("Use 'wrangler d1 migrations apply <binding_name>' for D1, or use --turso flag.")
+      io.println("Use 'wrangler d1 migrations apply <binding_name>' to apply D1 migrations.")
+      io.println("Or use --turso flag to apply migrations to a Turso database.")
     }
-    Turso -> {
+    Turso -> run_turso_migrations()
+  }
+}
+
+fn run_turso_migrations() -> Nil {
+  let url = env.get("TURSO_DATABASE_URL")
+  let token = env.get("TURSO_AUTH_TOKEN")
+
+  case url, token {
+    Some(url), Some(token) -> {
       io.println("Running migrations for Turso...")
-      io.println("Note: Turso migrations require TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables.")
+      let config = turso.connect(url, token)
+      let result = env.block_on(migrate.run_turso(config, "db/migrations"))
+      case result {
+        Ok(Nil) -> io.println("Migrations applied successfully!")
+        Error(e) -> io.println_error("Migration failed: " <> e)
+      }
+    }
+    None, None -> {
+      io.println_error("Error: TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables are required.")
+      io.println("Example:")
+      io.println("  export TURSO_DATABASE_URL=lib://my-db.turso.io")
+      io.println("  export TURSO_AUTH_TOKEN=eyJ...")
+      io.println("  gflare db migrate run --turso")
+    }
+    None, _ -> {
+      io.println_error("Error: TURSO_DATABASE_URL environment variable is required.")
+    }
+    _, None -> {
+      io.println_error("Error: TURSO_AUTH_TOKEN environment variable is required.")
     }
   }
 }
