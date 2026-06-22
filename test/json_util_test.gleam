@@ -1,9 +1,9 @@
 import gleeunit
 import gleeunit/should
 
+import gflare/json_util
 import gleam/json
 import gleam/option.{None, Some}
-import gflare/json_util
 
 pub fn main() {
   gleeunit.main()

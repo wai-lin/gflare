@@ -1,10 +1,11 @@
+import gflare/error.{type Error, D1Error}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/javascript/promise.{type Promise}
 import gleam/option.{type Option, None}
-import gflare/error.{type Error, D1Error}
 
 pub type Database
+
 pub type PreparedStatement
 
 pub type D1Result {
@@ -23,14 +24,11 @@ pub type D1Meta {
   )
 }
 
-pub type Row = Dynamic
+pub type Row =
+  Dynamic
 
 pub type D1ExecResult {
-  D1ExecResult(
-    results: List(Dynamic),
-    success: Bool,
-    meta: D1Meta,
-  )
+  D1ExecResult(results: List(Dynamic), success: Bool, meta: D1Meta)
 }
 
 pub fn int(value: Int) -> Dynamic {
@@ -87,9 +85,7 @@ pub fn bind(
 @external(javascript, "../gflare_ffi_d1.mjs", "d1_run")
 fn do_run(statement: PreparedStatement) -> Promise(Result(Dynamic, String))
 
-pub fn run(
-  statement: PreparedStatement,
-) -> Promise(Result(D1Result, Error)) {
+pub fn run(statement: PreparedStatement) -> Promise(Result(D1Result, Error)) {
   use result <- promise.await(do_run(statement))
   case result {
     Ok(data) -> {
@@ -124,9 +120,7 @@ pub fn first(
 @external(javascript, "../gflare_ffi_d1.mjs", "d1_all")
 fn do_all(statement: PreparedStatement) -> Promise(Result(Dynamic, String))
 
-pub fn all(
-  statement: PreparedStatement,
-) -> Promise(Result(D1Result, Error)) {
+pub fn all(statement: PreparedStatement) -> Promise(Result(D1Result, Error)) {
   use result <- promise.await(do_all(statement))
   case result {
     Ok(data) -> {
@@ -175,13 +169,41 @@ fn decode_d1_exec_result() {
 }
 
 fn decode_d1_meta() {
-  use changed_db <- decode.optional_field("changed_db", None, decode.optional(decode.bool))
-  use last_row_id <- decode.optional_field("last_row_id", None, decode.optional(decode.int))
-  use rows_read <- decode.optional_field("rows_read", None, decode.optional(decode.int))
-  use rows_written <- decode.optional_field("rows_written", None, decode.optional(decode.int))
-  use size_after_bytes <- decode.optional_field("size_after_bytes", None, decode.optional(decode.int))
-  use size_before_bytes <- decode.optional_field("size_before_bytes", None, decode.optional(decode.int))
-  use duration_ms <- decode.optional_field("duration_ms", None, decode.optional(decode.float))
+  use changed_db <- decode.optional_field(
+    "changed_db",
+    None,
+    decode.optional(decode.bool),
+  )
+  use last_row_id <- decode.optional_field(
+    "last_row_id",
+    None,
+    decode.optional(decode.int),
+  )
+  use rows_read <- decode.optional_field(
+    "rows_read",
+    None,
+    decode.optional(decode.int),
+  )
+  use rows_written <- decode.optional_field(
+    "rows_written",
+    None,
+    decode.optional(decode.int),
+  )
+  use size_after_bytes <- decode.optional_field(
+    "size_after_bytes",
+    None,
+    decode.optional(decode.int),
+  )
+  use size_before_bytes <- decode.optional_field(
+    "size_before_bytes",
+    None,
+    decode.optional(decode.int),
+  )
+  use duration_ms <- decode.optional_field(
+    "duration_ms",
+    None,
+    decode.optional(decode.float),
+  )
   decode.success(D1Meta(
     changed_db:,
     last_row_id:,

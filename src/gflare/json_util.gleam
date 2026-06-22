@@ -3,6 +3,7 @@ import gleam/dynamic/decode
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/string
 
 pub fn sparse(entries: List(#(String, json.Json))) -> json.Json {
   list.filter(entries, fn(entry) {
@@ -55,6 +56,6 @@ pub fn decode_bool(field_name: String) -> decode.Decoder(Bool) {
 pub fn parse(json_string: String) -> Result(Dynamic, String) {
   case json.parse(json_string, decode.dynamic) {
     Ok(value) -> Ok(value)
-    Error(_) -> Error("JSON decode error")
+    Error(e) -> Error("JSON decode error: " <> string.inspect(e))
   }
 }

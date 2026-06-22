@@ -1,3 +1,4 @@
+import gflare/turso/error.{type TursoError, ApiError, DecodeError, NetworkError}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/fetch
@@ -6,7 +7,6 @@ import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/list
 import gleam/result
-import gflare/turso/error.{type TursoError, ApiError, DecodeError, NetworkError}
 
 pub type CloudConfig {
   CloudConfig(org: String, token: String)
@@ -42,7 +42,8 @@ pub fn create_database(
   group: String,
 ) -> Promise(Result(Database, TursoError)) {
   let url = base_url <> "/organizations/" <> config.org <> "/databases"
-  let body = json.object([#("name", json.string(name)), #("group", json.string(group))])
+  let body =
+    json.object([#("name", json.string(name)), #("group", json.string(group))])
   post_request(config, url, body, parse_database)
 }
 
@@ -75,7 +76,16 @@ pub fn create_token(
   expiration: String,
   authorization: String,
 ) -> Promise(Result(TokenResult, TursoError)) {
-  let url = base_url <> "/organizations/" <> config.org <> "/databases/" <> db_name <> "/auth/tokens?expiration=" <> expiration <> "&authorization=" <> authorization
+  let url =
+    base_url
+    <> "/organizations/"
+    <> config.org
+    <> "/databases/"
+    <> db_name
+    <> "/auth/tokens?expiration="
+    <> expiration
+    <> "&authorization="
+    <> authorization
   post_request(config, url, json.object([]), parse_token)
 }
 
@@ -121,7 +131,8 @@ fn post_request(
       use text_result <- promise.await(fetch.read_text_body(resp))
       case text_result {
         Ok(text_resp) -> handle_response(resp.status, text_resp.body, parser)
-        Error(_) -> promise.resolve(Error(NetworkError("Failed to read response")))
+        Error(_) ->
+          promise.resolve(Error(NetworkError("Failed to read response")))
       }
     }
     Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
@@ -134,14 +145,16 @@ fn get_request(
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
   let assert Ok(req) = request.to(url)
-  let req = req |> request.set_header("Authorization", "Bearer " <> config.token)
+  let req =
+    req |> request.set_header("Authorization", "Bearer " <> config.token)
   use fetch_result <- promise.await(fetch.send(req))
   case fetch_result {
     Ok(resp) -> {
       use text_result <- promise.await(fetch.read_text_body(resp))
       case text_result {
         Ok(text_resp) -> handle_response(resp.status, text_resp.body, parser)
-        Error(_) -> promise.resolve(Error(NetworkError("Failed to read response")))
+        Error(_) ->
+          promise.resolve(Error(NetworkError("Failed to read response")))
       }
     }
     Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
@@ -153,7 +166,8 @@ fn delete_request(
   url: String,
 ) -> Promise(Result(Nil, TursoError)) {
   let assert Ok(req) = request.to(url)
-  let req = req |> request.set_header("Authorization", "Bearer " <> config.token)
+  let req =
+    req |> request.set_header("Authorization", "Bearer " <> config.token)
   use fetch_result <- promise.await(fetch.send(req))
   case fetch_result {
     Ok(resp) -> {
@@ -163,10 +177,14 @@ fn delete_request(
           case resp.status {
             200 -> promise.resolve(Ok(Nil))
             404 -> promise.resolve(Error(ApiError("Not found")))
-            _ -> promise.resolve(Error(ApiError("Request failed: " <> text_resp.body)))
+            _ ->
+              promise.resolve(
+                Error(ApiError("Request failed: " <> text_resp.body)),
+              )
           }
         }
-        Error(_) -> promise.resolve(Error(NetworkError("Failed to read response")))
+        Error(_) ->
+          promise.resolve(Error(NetworkError("Failed to read response")))
       }
     }
     Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
@@ -206,9 +224,10 @@ fn parse_database_list(body: String) -> Result(List(Database), String) {
   use data <- result.try(parse_json(body))
   use databases <- result.try(get_field(data, "databases"))
   use items <- result.try(get_list(databases))
-  let decoded = list.filter_map(items, fn(item) {
-    decode.run(item, decode_database_decoder())
-  })
+  let decoded =
+    list.filter_map(items, fn(item) {
+      decode.run(item, decode_database_decoder())
+    })
   Ok(decoded)
 }
 
@@ -239,9 +258,8 @@ fn parse_group_list(body: String) -> Result(List(Group), String) {
   use data <- result.try(parse_json(body))
   use groups <- result.try(get_field(data, "groups"))
   use items <- result.try(get_list(groups))
-  let decoded = list.filter_map(items, fn(item) {
-    decode.run(item, decode_group_decoder())
-  })
+  let decoded =
+    list.filter_map(items, fn(item) { decode.run(item, decode_group_decoder()) })
   Ok(decoded)
 }
 
@@ -257,7 +275,10 @@ fn parse_json(body: String) -> Result(Dynamic, String) {
 }
 
 fn get_field(data: Dynamic, field_name: String) -> Result(Dynamic, String) {
-  decode.run(data, decode.field(field_name, decode.dynamic, fn(v) { decode.success(v) }))
+  decode.run(
+    data,
+    decode.field(field_name, decode.dynamic, fn(v) { decode.success(v) }),
+  )
   |> result.map_error(fn(_) { "Field '" <> field_name <> "' not found" })
 }
 

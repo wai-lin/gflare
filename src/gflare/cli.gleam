@@ -1,8 +1,8 @@
 import argv
-import glint
 import gflare/cli/build
 import gflare/cli/db
 import gflare/cli/init
+import glint
 
 pub fn main() {
   let app =
@@ -22,7 +22,9 @@ pub fn main() {
 }
 
 fn init_command() {
-  use <- glint.command_help("Initialize Cloudflare Workers in the current project")
+  use <- glint.command_help(
+    "Initialize Cloudflare Workers in the current project",
+  )
   use _, _, _ <- glint.command()
   init.run()
 }

@@ -1,9 +1,9 @@
+import gflare/d1.{type Database}
+import gflare/durable_object.{type Namespace}
 import gflare/error.{type Error}
 import gflare/kv.{type Kv}
-import gflare/d1.{type Database}
-import gflare/r2.{type Bucket}
-import gflare/durable_object.{type Namespace}
 import gflare/queue.{type Queue}
+import gflare/r2.{type Bucket}
 
 pub type Env
 

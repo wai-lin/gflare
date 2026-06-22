@@ -5,5 +5,5 @@ pub fn main() {
 }
 
 pub fn version() -> String {
-  "0.1.0"
+  "1.0.0"
 }

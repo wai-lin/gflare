@@ -1,9 +1,9 @@
+import gflare/cli/toml_utils.{type Config, type DoClass}
 import gleam/dict
 import gleam/list
 import gleam/result
 import gleam/string
 import simplifile
-import gflare/cli/toml_utils.{type Config, type DoClass}
 
 @external(javascript, "../ffi.mjs", "generate_uuid")
 fn generate_uuid() -> String
@@ -16,7 +16,9 @@ pub fn entrypoint(
 ) -> Result(Nil, String) {
   let content = build_entrypoint_js(package_name, handlers, do_classes)
   simplifile.write(to: output_path, contents: content)
-  |> result.map_error(fn(e) { "Failed to write entrypoint: " <> string.inspect(e) })
+  |> result.map_error(fn(e) {
+    "Failed to write entrypoint: " <> string.inspect(e)
+  })
 }
 
 fn build_entrypoint_js(
@@ -27,7 +29,11 @@ fn build_entrypoint_js(
   let imports = [
     "import * as handler from \"./" <> package_name <> ".mjs\";",
     ..list.map(do_classes, fn(cls) {
-      "import { " <> cls.name <> " } from \"./" <> cls.module <> "_wrapped.mjs\";"
+      "import { "
+      <> cls.name
+      <> " } from \"./"
+      <> cls.module
+      <> "_wrapped.mjs\";"
     })
   ]
 
@@ -35,7 +41,8 @@ fn build_entrypoint_js(
     list.filter_map(handlers, fn(h) {
       case h {
         "queue" ->
-          Ok("  async queue(batch, env, ctx) {
+          Ok(
+            "  async queue(batch, env, ctx) {
     const messages = batch.messages.map(msg => ({
       id: msg.id,
       timestamp: msg.timestamp,
@@ -45,10 +52,10 @@ fn build_entrypoint_js(
       retry: () => msg.retry(),
     }));
     return handler.queue({ messages }, env, ctx);
-  },")
+  },",
+          )
         "alarm" -> Error(Nil)
-        _ ->
-          Ok("  async " <> h <> "(...args) {
+        _ -> Ok("  async " <> h <> "(...args) {
     return handler." <> h <> "(...args);
   },")
       }
@@ -82,7 +89,9 @@ pub fn wrangler_config(
 ) -> Result(Nil, String) {
   let content = build_wrangler_toml(worker_name, compat_date, config)
   simplifile.write(to: output_path, contents: content)
-  |> result.map_error(fn(e) { "Failed to write wrangler.toml: " <> string.inspect(e) })
+  |> result.map_error(fn(e) {
+    "Failed to write wrangler.toml: " <> string.inspect(e)
+  })
 }
 
 fn build_wrangler_toml(
@@ -99,57 +108,74 @@ fn build_wrangler_toml(
     "",
   ]
 
-  let kv_lines = list.flat_map(cf.bindings.kv, fn(name) {
-    [
-      "[[kv_namespaces]]",
-      "binding = \"" <> name <> "\"",
-      "id = \"" <> generate_uuid() <> "\"",
-      "",
-    ]
-  })
+  let kv_lines =
+    list.flat_map(cf.bindings.kv, fn(name) {
+      [
+        "[[kv_namespaces]]",
+        "binding = \"" <> name <> "\"",
+        "id = \"" <> generate_uuid() <> "\"",
+        "",
+      ]
+    })
 
-  let d1_lines = list.flat_map(cf.bindings.d1, fn(name) {
-    [
-      "[[d1_databases]]",
-      "binding = \"" <> name <> "\"",
-      "database_name = \"" <> worker_name <> "-" <> string.lowercase(name) <> "\"",
-      "database_id = \"" <> generate_uuid() <> "\"",
-      "",
-    ]
-  })
+  let d1_lines =
+    list.flat_map(cf.bindings.d1, fn(name) {
+      [
+        "[[d1_databases]]",
+        "binding = \"" <> name <> "\"",
+        "database_name = \""
+          <> worker_name
+          <> "-"
+          <> string.lowercase(name)
+          <> "\"",
+        "database_id = \"" <> generate_uuid() <> "\"",
+        "",
+      ]
+    })
 
-  let r2_lines = list.flat_map(cf.bindings.r2, fn(name) {
-    [
-      "[[r2_buckets]]",
-      "binding = \"" <> name <> "\"",
-      "bucket_name = \"" <> worker_name <> "-" <> string.lowercase(name) <> "\"",
-      "",
-    ]
-  })
+  let r2_lines =
+    list.flat_map(cf.bindings.r2, fn(name) {
+      [
+        "[[r2_buckets]]",
+        "binding = \"" <> name <> "\"",
+        "bucket_name = \""
+          <> worker_name
+          <> "-"
+          <> string.lowercase(name)
+          <> "\"",
+        "",
+      ]
+    })
 
-  let queue_producer_lines = list.flat_map(cf.bindings.queues_producers, fn(name) {
-    [
-      "[[queues.producers]]",
-      "binding = \"" <> name <> "\"",
-      "queue_name = \"" <> string.lowercase(name) <> "\"",
-      "",
-    ]
-  })
+  let queue_producer_lines =
+    list.flat_map(cf.bindings.queues_producers, fn(name) {
+      [
+        "[[queues.producers]]",
+        "binding = \"" <> name <> "\"",
+        "queue_name = \"" <> string.lowercase(name) <> "\"",
+        "",
+      ]
+    })
 
-  let queue_consumer_lines = list.flat_map(cf.bindings.queues_consumers, fn(queue_name) {
-    [
-      "[[queues.consumers]]",
-      "queue = \"" <> queue_name <> "\"",
-      "",
-    ]
-  })
+  let queue_consumer_lines =
+    list.flat_map(cf.bindings.queues_consumers, fn(queue_name) {
+      [
+        "[[queues.consumers]]",
+        "queue = \"" <> queue_name <> "\"",
+        "",
+      ]
+    })
 
   let do_lines = case cf.durable_objects.classes {
     [] -> []
     classes -> {
       let bindings =
         list.map(classes, fn(cls) {
-          "{ name = \"" <> cls.name <> "\", class_name = \"" <> cls.name <> "\" }"
+          "{ name = \""
+          <> cls.name
+          <> "\", class_name = \""
+          <> cls.name
+          <> "\" }"
         })
       [
         "[durable_objects]",
@@ -216,7 +242,9 @@ pub fn do_class(
     }
     _ ->
       Error(
-        "Durable Object module not found at " <> gleam_mjs_path <> ". Skipping "
+        "Durable Object module not found at "
+        <> gleam_mjs_path
+        <> ". Skipping "
         <> class_config.name
         <> " wrapper generation.",
       )

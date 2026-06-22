@@ -1,11 +1,11 @@
 import gleeunit
 import gleeunit/should
 
+import gflare/turso
+import gflare/turso/cloud
+import gflare/turso/types
 import gleam/list
 import gleam/option.{None, Some}
-import gflare/turso
-import gflare/turso/types
-import gflare/turso/cloud
 
 pub fn main() {
   gleeunit.main()
@@ -84,7 +84,12 @@ pub fn value_null_equality_test() {
 
 pub fn execute_result_empty_test() {
   let result =
-    types.ExecuteResult(rows: [], columns: [], rows_affected: 0, last_insert_rowid: None)
+    types.ExecuteResult(
+      rows: [],
+      columns: [],
+      rows_affected: 0,
+      last_insert_rowid: None,
+    )
   result.rows |> should.equal([])
   result.columns |> should.equal([])
   result.rows_affected |> should.equal(0)
@@ -93,10 +98,10 @@ pub fn execute_result_empty_test() {
 
 pub fn execute_result_with_rows_test() {
   let row =
-    types.Row(
-      columns: ["id", "name"],
-      values: [types.Integer(1), types.Text("Alice")],
-    )
+    types.Row(columns: ["id", "name"], values: [
+      types.Integer(1),
+      types.Text("Alice"),
+    ])
   let result =
     types.ExecuteResult(
       rows: [row],
@@ -113,10 +118,10 @@ pub fn execute_result_with_rows_test() {
 
 pub fn row_construction_test() {
   let row =
-    types.Row(
-      columns: ["id", "name"],
-      values: [types.Integer(1), types.Text("Alice")],
-    )
+    types.Row(columns: ["id", "name"], values: [
+      types.Integer(1),
+      types.Text("Alice"),
+    ])
   row.columns |> should.equal(["id", "name"])
   list.length(row.values) |> should.equal(2)
 }
@@ -139,16 +144,13 @@ pub fn batch_modes_not_equal_test() {
 
 pub fn mixed_values_in_row_test() {
   let row =
-    types.Row(
-      columns: ["id", "name", "score", "data", "flag"],
-      values: [
-        types.Integer(1),
-        types.Text("Alice"),
-        types.Float(9.5),
-        types.Blob(<<1, 2>>),
-        types.Null,
-      ],
-    )
+    types.Row(columns: ["id", "name", "score", "data", "flag"], values: [
+      types.Integer(1),
+      types.Text("Alice"),
+      types.Float(9.5),
+      types.Blob(<<1, 2>>),
+      types.Null,
+    ])
   list.length(row.values) |> should.equal(5)
 }
 
@@ -175,13 +177,14 @@ pub fn cloud_connect_empty_test() {
 // Cloud database type tests
 
 pub fn database_construction_test() {
-  let db = cloud.Database(
-    name: "test-db",
-    db_id: "abc-123",
-    hostname: "test-db-org.turso.io",
-    group: "default",
-    primary_region: "aws-us-east-1",
-  )
+  let db =
+    cloud.Database(
+      name: "test-db",
+      db_id: "abc-123",
+      hostname: "test-db-org.turso.io",
+      group: "default",
+      primary_region: "aws-us-east-1",
+    )
   db.name |> should.equal("test-db")
   db.db_id |> should.equal("abc-123")
   db.hostname |> should.equal("test-db-org.turso.io")

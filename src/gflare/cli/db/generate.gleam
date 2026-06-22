@@ -1,6 +1,7 @@
 import gflare/cli/db/types.{
   type DbBackend, type ParsedQuery, type ResultSet, D1, Turso,
-  gleam_type_to_d1_bind, gleam_type_to_decoder, gleam_type_to_string, gleam_type_to_turso_value,
+  gleam_type_to_d1_bind, gleam_type_to_decoder, gleam_type_to_string,
+  gleam_type_to_turso_value,
 }
 import gleam/list
 import gleam/string
@@ -17,7 +18,13 @@ pub fn generate_sql_module(
   }
   case simplifile.write(to: output_path, contents: content) {
     Ok(Nil) -> Ok(Nil)
-    Error(e) -> Error("Failed to write " <> output_path <> ": " <> simplifile.describe_error(e))
+    Error(e) ->
+      Error(
+        "Failed to write "
+        <> output_path
+        <> ": "
+        <> simplifile.describe_error(e),
+      )
   }
 }
 
@@ -27,8 +34,7 @@ fn generate_d1_module(queries: List(ParsedQuery)) -> String {
 
   let types = list.map(queries, generate_d1_row_type) |> string.join("\n\n")
 
-  let functions =
-    list.map(queries, generate_d1_function) |> string.join("\n\n")
+  let functions = list.map(queries, generate_d1_function) |> string.join("\n\n")
 
   [imports, "", types, "", functions] |> string.join("\n")
 }
@@ -55,7 +61,13 @@ fn generate_d1_row_type(query: ParsedQuery) -> String {
           "  " <> f.name <> ": " <> gleam_type_to_string(f.gleam_type)
         })
         |> string.join(",\n")
-      "pub type " <> type_name <> " {\n" <> type_name <> "(\n" <> field_strs <> ",\n)\n}"
+      "pub type "
+      <> type_name
+      <> " {\n"
+      <> type_name
+      <> "(\n"
+      <> field_strs
+      <> ",\n)\n}"
     }
   }
 }
@@ -90,19 +102,31 @@ fn generate_d1_function(query: ParsedQuery) -> String {
     [] -> ""
     _ -> {
       let decoder_fields =
-        list.map(query.returns, fn(f) {
-          "    " <> f.name
-        })
+        list.map(query.returns, fn(f) { "    " <> f.name })
         |> string.join("\n")
-      "  let decoder = {\n" <> decoder_lines <> "\n    decode.success(" <> return_type <> "(" <> decoder_fields <> ":))\n  }\n"
+      "  let decoder = {\n"
+      <> decoder_lines
+      <> "\n    decode.success("
+      <> return_type
+      <> "("
+      <> decoder_fields
+      <> ":))\n  }\n"
     }
   }
 
   let run_call = case query.returns {
     [] ->
-      "  d1.prepare(db, \"" <> escape_sql(query.sql) <> "\")\n  |> d1.bind([\n" <> bind_values <> ",\n  ])\n  |> d1.run()"
+      "  d1.prepare(db, \""
+      <> escape_sql(query.sql)
+      <> "\")\n  |> d1.bind([\n"
+      <> bind_values
+      <> ",\n  ])\n  |> d1.run()"
     _ ->
-      "  use result <- promise.await(d1.prepare(db, \"" <> escape_sql(query.sql) <> "\")\n  |> d1.bind([\n" <> bind_values <> ",\n  ])\n  |> d1.first())\n  case result {\n    Ok(Some(row)) -> {\n      case decode.run(row, decoder) {\n        Ok(decoded) -> promise.resolve(Ok(decoded))\n        Error(_) -> promise.resolve(Error(error.D1Error(\"Failed to decode row\")))\n      }\n    }\n    Ok(None) -> promise.resolve(Error(error.D1Error(\"No row found\")))\n    Error(e) -> promise.resolve(Error(e))\n  }"
+      "  use result <- promise.await(d1.prepare(db, \""
+      <> escape_sql(query.sql)
+      <> "\")\n  |> d1.bind([\n"
+      <> bind_values
+      <> ",\n  ])\n  |> d1.first())\n  case result {\n    Ok(Some(row)) -> {\n      case decode.run(row, decoder) {\n        Ok(decoded) -> promise.resolve(Ok(decoded))\n        Error(_) -> promise.resolve(Error(error.D1Error(\"Failed to decode row\")))\n      }\n    }\n    Ok(None) -> promise.resolve(Error(error.D1Error(\"No row found\")))\n    Error(e) -> promise.resolve(Error(e))\n  }"
   }
 
   let return_sig = case query.returns {
@@ -110,7 +134,16 @@ fn generate_d1_function(query: ParsedQuery) -> String {
     _ -> "promise.Promise(Result(" <> return_type <> ", Error))"
   }
 
-  "pub fn " <> fn_name <> "(" <> param_args <> ") -> " <> return_sig <> " {\n" <> decoder_block <> run_call <> "\n}"
+  "pub fn "
+  <> fn_name
+  <> "("
+  <> param_args
+  <> ") -> "
+  <> return_sig
+  <> " {\n"
+  <> decoder_block
+  <> run_call
+  <> "\n}"
 }
 
 fn generate_turso_function(query: ParsedQuery) -> String {
@@ -139,19 +172,31 @@ fn generate_turso_function(query: ParsedQuery) -> String {
     [] -> ""
     _ -> {
       let decoder_fields =
-        list.map(query.returns, fn(f) {
-          "    " <> f.name
-        })
+        list.map(query.returns, fn(f) { "    " <> f.name })
         |> string.join("\n")
-      "  let decoder = {\n" <> decoder_lines <> "\n    decode.success(" <> return_type <> "(" <> decoder_fields <> ":))\n  }\n"
+      "  let decoder = {\n"
+      <> decoder_lines
+      <> "\n    decode.success("
+      <> return_type
+      <> "("
+      <> decoder_fields
+      <> ":))\n  }\n"
     }
   }
 
   let execute_call = case query.returns {
     [] ->
-      "  turso.execute(config, \"" <> escape_sql(query.sql) <> "\", [\n" <> turso_args <> ",\n  ])"
+      "  turso.execute(config, \""
+      <> escape_sql(query.sql)
+      <> "\", [\n"
+      <> turso_args
+      <> ",\n  ])"
     _ ->
-      "  use result <- promise.await(turso.execute(config, \"" <> escape_sql(query.sql) <> "\", [\n" <> turso_args <> ",\n  ]))\n  case result {\n    Ok(execute_result) -> {\n      case execute_result.rows {\n        [row, ..] -> {\n          case decode.run(row.values, decoder) {\n            Ok(decoded) -> promise.resolve(Ok(decoded))\n            Error(_) -> promise.resolve(Error(error.DecodeError(\"Failed to decode row\")))\n          }\n        }\n        [] -> promise.resolve(Error(error.NotFound(\"No row found\")))\n      }\n    }\n    Error(e) -> promise.resolve(Error(e))\n  }"
+      "  use result <- promise.await(turso.execute(config, \""
+      <> escape_sql(query.sql)
+      <> "\", [\n"
+      <> turso_args
+      <> ",\n  ]))\n  case result {\n    Ok(execute_result) -> {\n      case execute_result.rows {\n        [row, ..] -> {\n          case decode.run(row.values, decoder) {\n            Ok(decoded) -> promise.resolve(Ok(decoded))\n            Error(_) -> promise.resolve(Error(error.DecodeError(\"Failed to decode row\")))\n          }\n        }\n        [] -> promise.resolve(Error(error.NotFound(\"No row found\")))\n      }\n    }\n    Error(e) -> promise.resolve(Error(e))\n  }"
   }
 
   let return_sig = case query.returns {
@@ -159,7 +204,16 @@ fn generate_turso_function(query: ParsedQuery) -> String {
     _ -> "promise.Promise(Result(" <> return_type <> ", TursoError))"
   }
 
-  "pub fn " <> fn_name <> "(" <> param_args <> ") -> " <> return_sig <> " {\n" <> decoder_block <> execute_call <> "\n}"
+  "pub fn "
+  <> fn_name
+  <> "("
+  <> param_args
+  <> ") -> "
+  <> return_sig
+  <> " {\n"
+  <> decoder_block
+  <> execute_call
+  <> "\n}"
 }
 
 fn generate_decoder_lines(result_set: List(ResultSet), index: Int) -> String {
@@ -167,7 +221,14 @@ fn generate_decoder_lines(result_set: List(ResultSet), index: Int) -> String {
     [] -> ""
     [field, ..rest] -> {
       let decoder_fn = gleam_type_to_decoder(field.gleam_type)
-      let line = "    use " <> field.name <> " <- decode.field(" <> int_to_string(index) <> ", " <> decoder_fn <> ")"
+      let line =
+        "    use "
+        <> field.name
+        <> " <- decode.field("
+        <> int_to_string(index)
+        <> ", "
+        <> decoder_fn
+        <> ")"
       let rest_lines = generate_decoder_lines(rest, index + 1)
       case rest_lines {
         "" -> line
@@ -181,16 +242,10 @@ fn snake_to_pascal(s: String) -> String {
   s
   |> string.split("_")
   |> list.map(fn(part) {
-    case string.starts_with(part, "") {
-      True -> {
-        let chars = string.to_graphemes(part)
-        case chars {
-          [first, ..rest] ->
-            string.uppercase(first) <> string.join(rest, "")
-          [] -> ""
-        }
-      }
-      False -> ""
+    let chars = string.to_graphemes(part)
+    case chars {
+      [first, ..rest] -> string.uppercase(first) <> string.join(rest, "")
+      [] -> ""
     }
   })
   |> string.join("")

@@ -1,12 +1,12 @@
 import gleeunit
 import gleeunit/should
 
+import gflare/cli/handlers
+import gflare/cli/toml_utils
 import gleam/int
 import gleam/list
 import gleam/string
 import simplifile
-import gflare/cli/handlers
-import gflare/cli/toml_utils
 
 pub fn main() {
   gleeunit.main()
@@ -270,15 +270,21 @@ pub fn full_pipeline_test() {
   |> should.be_true
 
   let entrypoint =
-    "import * as handler from \"./" <> config.package_name <> ".mjs\";\n"
+    "import * as handler from \"./"
+    <> config.package_name
+    <> ".mjs\";\n"
     <> "export default { fetch: handler.fetch, queue: handler.queue };\n"
   let assert Ok(_) =
     simplifile.write(to: dir <> "/index.js", contents: entrypoint)
 
   let wrangler =
-    "name = \"" <> config.cloudflare.name <> "\"\n"
+    "name = \""
+    <> config.cloudflare.name
+    <> "\"\n"
     <> "main = \"./build/dist/bundle.js\"\n"
-    <> "compatibility_date = \"" <> config.cloudflare.compatibility_date <> "\"\n"
+    <> "compatibility_date = \""
+    <> config.cloudflare.compatibility_date
+    <> "\"\n"
   let assert Ok(_) =
     simplifile.write(to: dir <> "/wrangler.toml", contents: wrangler)
 

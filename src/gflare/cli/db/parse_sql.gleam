@@ -1,6 +1,6 @@
 import gflare/cli/db/types.{
-  type ParsedQuery, type QueryParam, type ResultSet, ParsedQuery, QueryParam, ResultSet,
-  parse_gleam_type,
+  type ParsedQuery, type QueryParam, type ResultSet, ParsedQuery, QueryParam,
+  ResultSet, parse_gleam_type,
 }
 import gleam/list
 import gleam/result
@@ -19,7 +19,10 @@ fn parse_param_line(line: String) -> List(QueryParam) {
   |> list.filter_map(fn(part) {
     case string.split(string.trim(part), ":") {
       [name, type_str] ->
-        Ok(QueryParam(name: string.trim(name), gleam_type: parse_gleam_type(string.trim(type_str))))
+        case parse_gleam_type(string.trim(type_str)) {
+          Ok(gleam_type) -> Ok(QueryParam(name: string.trim(name), gleam_type:))
+          Error(_) -> Error(Nil)
+        }
       _ -> Error(Nil)
     }
   })
@@ -32,7 +35,10 @@ fn parse_return_line(line: String) -> List(ResultSet) {
   |> list.filter_map(fn(part) {
     case string.split(string.trim(part), ":") {
       [name, type_str] ->
-        Ok(ResultSet(name: string.trim(name), gleam_type: parse_gleam_type(string.trim(type_str))))
+        case parse_gleam_type(string.trim(type_str)) {
+          Ok(gleam_type) -> Ok(ResultSet(name: string.trim(name), gleam_type:))
+          Error(_) -> Error(Nil)
+        }
       _ -> Error(Nil)
     }
   })
@@ -41,53 +47,50 @@ fn parse_return_line(line: String) -> List(ResultSet) {
 fn parse_sql_content(content: String) -> Result(ParsedQuery, SqlParseError) {
   let lines = string.split(content, "\n")
 
-  let params = list.filter_map(lines, fn(line) {
-    let trimmed = string.trim(line)
-    case string.starts_with(trimmed, "-- params:") {
-      True -> {
-        let param_str = string.drop_start(trimmed, 10) |> string.trim
-        Ok(parse_param_line(param_str))
-      }
-      False -> Error(Nil)
-    }
-  })
-  |> list.flatten
-
-  let returns = list.filter_map(lines, fn(line) {
-    let trimmed = string.trim(line)
-    case string.starts_with(trimmed, "-- returns:") {
-      True -> {
-        let return_str = string.drop_start(trimmed, 11) |> string.trim
-        Ok(parse_return_line(return_str))
-      }
-      False -> Error(Nil)
-    }
-  })
-  |> list.flatten
-
-  let sql_lines = list.filter_map(lines, fn(line) {
-    let trimmed = string.trim(line)
-    case string.starts_with(trimmed, "--") {
-      True -> Error(Nil)
-      False ->
-        case trimmed {
-          "" -> Error(Nil)
-          _ -> Ok(trimmed)
+  let params =
+    list.filter_map(lines, fn(line) {
+      let trimmed = string.trim(line)
+      case string.starts_with(trimmed, "-- params:") {
+        True -> {
+          let param_str = string.drop_start(trimmed, 10) |> string.trim
+          Ok(parse_param_line(param_str))
         }
-    }
-  })
+        False -> Error(Nil)
+      }
+    })
+    |> list.flatten
+
+  let returns =
+    list.filter_map(lines, fn(line) {
+      let trimmed = string.trim(line)
+      case string.starts_with(trimmed, "-- returns:") {
+        True -> {
+          let return_str = string.drop_start(trimmed, 11) |> string.trim
+          Ok(parse_return_line(return_str))
+        }
+        False -> Error(Nil)
+      }
+    })
+    |> list.flatten
+
+  let sql_lines =
+    list.filter_map(lines, fn(line) {
+      let trimmed = string.trim(line)
+      case string.starts_with(trimmed, "--") {
+        True -> Error(Nil)
+        False ->
+          case trimmed {
+            "" -> Error(Nil)
+            _ -> Ok(trimmed)
+          }
+      }
+    })
 
   let sql = string.join(sql_lines, "\n")
 
   case sql {
     "" -> Error(ParseError(path: "", message: "No SQL query found"))
-    _ ->
-      Ok(ParsedQuery(
-        name: "",
-        params:,
-        returns:,
-        sql:,
-      ))
+    _ -> Ok(ParsedQuery(name: "", params:, returns:, sql:))
   }
 }
 
@@ -99,11 +102,15 @@ pub fn parse_file(path: String) -> Result(ParsedQuery, SqlParseError) {
           let name = extract_name_from_path(path)
           Ok(ParsedQuery(..query, name:))
         }
-        Error(e) -> Error(ParseError(path:, message: "Failed to parse SQL: " <> e.message))
+        Error(e) ->
+          Error(ParseError(path:, message: "Failed to parse SQL: " <> e.message))
       }
     }
     Error(e) ->
-      Error(FileError(path:, message: "Failed to read file: " <> simplifile.describe_error(e)))
+      Error(FileError(
+        path:,
+        message: "Failed to read file: " <> simplifile.describe_error(e),
+      ))
   }
 }
 
@@ -132,6 +139,8 @@ pub fn find_sql_files(dir: String) -> Result(List(String), SqlParseError) {
   }
 }
 
-pub fn parse_file_content(content: String) -> Result(ParsedQuery, SqlParseError) {
+pub fn parse_file_content(
+  content: String,
+) -> Result(ParsedQuery, SqlParseError) {
   parse_sql_content(content)
 }

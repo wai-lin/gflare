@@ -1,14 +1,13 @@
-import gleam/dynamic/decode
-import gleam/io
-import gleam/javascript/promise.{type Promise}
-import gleam/list
-import gleam/option.{None, Some}
 import gflare/d1
 import gflare/error
 import gflare/migrate/parse.{type Migration}
 import gflare/turso
 import gflare/turso/error as turso_err
 import gflare/turso/types as turso_types
+import gleam/dynamic/decode
+import gleam/io
+import gleam/javascript/promise.{type Promise}
+import gleam/list
 
 const tracking_table = "_gflare_migrations"
 
@@ -57,7 +56,9 @@ fn ensure_tracking_table_turso(
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
     Error(e) ->
-      promise.resolve(Error("Failed to create tracking table: " <> turso_err.to_string(e)))
+      promise.resolve(Error(
+        "Failed to create tracking table: " <> turso_err.to_string(e),
+      ))
   }
 }
 
@@ -70,7 +71,9 @@ fn ensure_tracking_table_d1(db: d1.Database) -> Promise(Result(Nil, String)) {
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
     Error(e) ->
-      promise.resolve(Error("Failed to create tracking table: " <> error.to_string(e)))
+      promise.resolve(Error(
+        "Failed to create tracking table: " <> error.to_string(e),
+      ))
   }
 }
 
@@ -91,29 +94,35 @@ fn list_applied_turso(
       promise.resolve(Ok(names))
     }
     Error(e) ->
-      promise.resolve(Error("Failed to list applied migrations: " <> turso_err.to_string(e)))
+      promise.resolve(Error(
+        "Failed to list applied migrations: " <> turso_err.to_string(e),
+      ))
   }
 }
 
-fn list_applied_d1(
-  db: d1.Database,
-) -> Promise(Result(List(String), String)) {
-  let stmt = d1.prepare(db, "SELECT name FROM " <> tracking_table <> " ORDER BY id")
-  use result <- promise.await(d1.first(stmt))
+fn list_applied_d1(db: d1.Database) -> Promise(Result(List(String), String)) {
+  let stmt =
+    d1.prepare(db, "SELECT name FROM " <> tracking_table <> " ORDER BY id")
+  use result <- promise.await(d1.all(stmt))
   case result {
-    Ok(Some(row)) -> {
+    Ok(d1_result) -> {
       let decoder = {
         use name <- decode.field("name", decode.string)
         decode.success(name)
       }
-      case decode.run(row, decoder) {
-        Ok(name) -> promise.resolve(Ok([name]))
-        Error(_) -> promise.resolve(Ok([]))
-      }
+      let names =
+        list.filter_map(d1_result.results, fn(row) {
+          case decode.run(row, decoder) {
+            Ok(name) -> Ok(name)
+            Error(_) -> Error(Nil)
+          }
+        })
+      promise.resolve(Ok(names))
     }
-    Ok(None) -> promise.resolve(Ok([]))
     Error(e) ->
-      promise.resolve(Error("Failed to list applied migrations: " <> error.to_string(e)))
+      promise.resolve(Error(
+        "Failed to list applied migrations: " <> error.to_string(e),
+      ))
   }
 }
 
@@ -127,7 +136,11 @@ fn execute_pending_turso(
       promise.resolve(Ok(Nil))
     }
     _ -> {
-      io.println("Applying " <> parse.int_to_string(list.length(pending)) <> " migration(s)...")
+      io.println(
+        "Applying "
+        <> parse.int_to_string(list.length(pending))
+        <> " migration(s)...",
+      )
       execute_migrations_turso(config, pending)
     }
   }
@@ -148,9 +161,12 @@ fn execute_migrations_turso(
           execute_migrations_turso(config, rest)
         }
         Error(e) ->
-          promise.resolve(
-            Error("Failed to apply migration " <> migration.name <> ": " <> turso_err.to_string(e)),
-          )
+          promise.resolve(Error(
+            "Failed to apply migration "
+            <> migration.name
+            <> ": "
+            <> turso_err.to_string(e),
+          ))
       }
     }
   }
@@ -165,9 +181,9 @@ fn record_migration_turso(
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
     Error(e) ->
-      promise.resolve(
-        Error("Failed to record migration " <> name <> ": " <> turso_err.to_string(e)),
-      )
+      promise.resolve(Error(
+        "Failed to record migration " <> name <> ": " <> turso_err.to_string(e),
+      ))
   }
 }
 
@@ -181,7 +197,11 @@ fn execute_pending_d1(
       promise.resolve(Ok(Nil))
     }
     _ -> {
-      io.println("Applying " <> parse.int_to_string(list.length(pending)) <> " migration(s)...")
+      io.println(
+        "Applying "
+        <> parse.int_to_string(list.length(pending))
+        <> " migration(s)...",
+      )
       execute_migrations_d1(db, pending)
     }
   }
@@ -202,9 +222,12 @@ fn execute_migrations_d1(
           execute_migrations_d1(db, rest)
         }
         Error(e) ->
-          promise.resolve(
-            Error("Failed to apply migration " <> migration.name <> ": " <> error.to_string(e)),
-          )
+          promise.resolve(Error(
+            "Failed to apply migration "
+            <> migration.name
+            <> ": "
+            <> error.to_string(e),
+          ))
       }
     }
   }
@@ -214,14 +237,15 @@ fn record_migration_d1(
   db: d1.Database,
   name: String,
 ) -> Promise(Result(Nil, String)) {
-  let stmt = d1.prepare(db, "INSERT INTO " <> tracking_table <> " (name) VALUES (?)")
+  let stmt =
+    d1.prepare(db, "INSERT INTO " <> tracking_table <> " (name) VALUES (?)")
   let stmt = d1.bind(stmt, [d1.text(name)])
   use result <- promise.await(d1.run(stmt))
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
     Error(e) ->
-      promise.resolve(
-        Error("Failed to record migration " <> name <> ": " <> error.to_string(e)),
-      )
+      promise.resolve(Error(
+        "Failed to record migration " <> name <> ": " <> error.to_string(e),
+      ))
   }
 }

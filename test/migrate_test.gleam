@@ -1,11 +1,11 @@
 import gleeunit
 import gleeunit/should
 
+import gflare/migrate/parse
 import gleam/io
 import gleam/list
 import gleam/order
 import gleam/string
-import gflare/migrate/parse
 import simplifile
 
 pub fn main() {
@@ -15,12 +15,13 @@ pub fn main() {
 // Migration type tests
 
 pub fn migration_construction_test() {
-  let migration = parse.Migration(
-    version: 1,
-    name: "0001_create_users",
-    path: "db/migrations/0001_create_users.sql",
-    sql: "CREATE TABLE users (id INTEGER PRIMARY KEY)",
-  )
+  let migration =
+    parse.Migration(
+      version: 1,
+      name: "0001_create_users",
+      path: "db/migrations/0001_create_users.sql",
+      sql: "CREATE TABLE users (id INTEGER PRIMARY KEY)",
+    )
   migration.version |> should.equal(1)
   migration.name |> should.equal("0001_create_users")
   migration.path |> should.equal("db/migrations/0001_create_users.sql")
@@ -38,7 +39,7 @@ pub fn parse_version_multi_digit_test() {
 }
 
 pub fn parse_version_large_number_test() {
-  parse.parse_version("12345") |> should.equal(Ok(12345))
+  parse.parse_version("12345") |> should.equal(Ok(12_345))
 }
 
 pub fn parse_version_zero_test() {
@@ -128,7 +129,8 @@ pub fn parse_migration_file_test() {
   let dir = test_dir_name(1)
   let _ = simplifile.create_directory_all(dir)
   let filepath = dir <> "/0001_create_users.sql"
-  let content = "-- Create users table\nCREATE TABLE users (id INTEGER PRIMARY KEY);"
+  let content =
+    "-- Create users table\nCREATE TABLE users (id INTEGER PRIMARY KEY);"
   let _ = simplifile.write(to: filepath, contents: content)
 
   case parse.parse_migration_file(filepath) {
@@ -289,21 +291,9 @@ pub fn list_pending_sorts_by_version_test() {
   let dir = test_dir_name(8)
   let _ = simplifile.create_directory_all(dir)
 
-  let _ =
-    simplifile.write(
-      to: dir <> "/0003_third.sql",
-      contents: "SELECT 3;",
-    )
-  let _ =
-    simplifile.write(
-      to: dir <> "/0001_first.sql",
-      contents: "SELECT 1;",
-    )
-  let _ =
-    simplifile.write(
-      to: dir <> "/0002_second.sql",
-      contents: "SELECT 2;",
-    )
+  let _ = simplifile.write(to: dir <> "/0003_third.sql", contents: "SELECT 3;")
+  let _ = simplifile.write(to: dir <> "/0001_first.sql", contents: "SELECT 1;")
+  let _ = simplifile.write(to: dir <> "/0002_second.sql", contents: "SELECT 2;")
 
   case parse.list_pending(dir, []) {
     Ok(migrations) -> {

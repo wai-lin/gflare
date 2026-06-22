@@ -1,8 +1,8 @@
 import gleeunit
 import gleeunit/should
 
-import gleam/dict
 import gflare/cli/toml_utils
+import gleam/dict
 
 pub fn main() {
   gleeunit.main()
@@ -10,10 +10,7 @@ pub fn main() {
 
 pub fn parse_minimal_config_test() {
   let toml =
-    "name = \"my_app\"\n"
-    <> "\n"
-    <> "[cloudflare]\n"
-    <> "name = \"my-app\"\n"
+    "name = \"my_app\"\n" <> "\n" <> "[cloudflare]\n" <> "name = \"my-app\"\n"
   let result = toml_utils.parse_config(toml)
   case result {
     Ok(config) -> {
@@ -150,18 +147,13 @@ pub fn parse_config_with_vars_test() {
 
 pub fn parse_config_missing_name_test() {
   let toml =
-    "version = \"1.0.0\"\n"
-    <> "\n"
-    <> "[cloudflare]\n"
-    <> "name = \"my-app\"\n"
+    "version = \"1.0.0\"\n" <> "\n" <> "[cloudflare]\n" <> "name = \"my-app\"\n"
   toml_utils.parse_config(toml)
   |> should.be_error
 }
 
 pub fn parse_config_missing_cloudflare_section_test() {
-  let toml =
-    "name = \"my_app\"\n"
-    <> "version = \"1.0.0\"\n"
+  let toml = "name = \"my_app\"\n" <> "version = \"1.0.0\"\n"
   toml_utils.parse_config(toml)
   |> should.be_error
 }

@@ -9,7 +9,9 @@ pub fn run() -> Nil {
 
   let outcome =
     simplifile.read("gleam.toml")
-    |> result.map_error(fn(_) { "Could not read gleam.toml. Are you in a Gleam project?" })
+    |> result.map_error(fn(_) {
+      "Could not read gleam.toml. Are you in a Gleam project?"
+    })
     |> result.try(fn(content) {
       extract_package_name(content)
       |> result.map(fn(name) { #(content, name) })
@@ -19,14 +21,14 @@ pub fn run() -> Nil {
       add_cloudflare_section(content, name)
       |> result.map(fn(_) { name })
     })
-    |> result.try(fn(name) {
-      write_handler(name)
-    })
+    |> result.try(fn(name) { write_handler(name) })
 
   case outcome {
     Ok(_) -> {
       io.println("\nDone! Your project is ready for Cloudflare Workers.")
-      io.println("\n  1. Edit your handler file to add Cloudflare Workers handlers")
+      io.println(
+        "\n  1. Edit your handler file to add Cloudflare Workers handlers",
+      )
       io.println("  2. Run: gleam run -m gflare -- build")
       io.println("  3. Run: gleam run -m gflare -- dev")
     }
@@ -40,7 +42,11 @@ fn extract_package_name(content: String) -> Result(String, String) {
   let lines = string.split(content, "\n")
   case list.find(lines, fn(line) { string.starts_with(line, "name = ") }) {
     Ok(line) -> {
-      let name = line |> string.drop_start(7) |> string.trim |> string.replace("\"", with: "")
+      let name =
+        line
+        |> string.drop_start(7)
+        |> string.trim
+        |> string.replace("\"", with: "")
       case string.is_empty(name) {
         True -> Error("Could not parse package name from gleam.toml")
         False -> Ok(name)
@@ -50,7 +56,10 @@ fn extract_package_name(content: String) -> Result(String, String) {
   }
 }
 
-fn add_cloudflare_section(content: String, package_name: String) -> Result(Nil, String) {
+fn add_cloudflare_section(
+  content: String,
+  package_name: String,
+) -> Result(Nil, String) {
   case string.contains(content, "[cloudflare]") {
     True -> {
       io.println("  [cloudflare] section already exists in gleam.toml")
@@ -59,11 +68,15 @@ fn add_cloudflare_section(content: String, package_name: String) -> Result(Nil, 
     False -> {
       let cf_name =
         package_name |> string.replace("_", with: "-") |> string.lowercase
-      let today = "2025-01-01"
+      let today = do_get_iso_date()
       let section =
         "\n[cloudflare]\n"
-        <> "name = \"" <> cf_name <> "\"\n"
-        <> "compatibility_date = \"" <> today <> "\"\n"
+        <> "name = \""
+        <> cf_name
+        <> "\"\n"
+        <> "compatibility_date = \""
+        <> today
+        <> "\"\n"
         <> "\n"
         <> "[cloudflare.bindings]\n"
       use _ <- result.try(
@@ -95,7 +108,9 @@ fn write_handler(package_name: String) -> Result(Nil, String) {
         <> "\n"
         <> "pub fn fetch(request: HttpRequest, env: Env, ctx: Context) {\n"
         <> "  response.new(200)\n"
-        <> "  |> response.set_body(\"Hello from " <> package_name <> "!\")\n"
+        <> "  |> response.set_body(\"Hello from "
+        <> package_name
+        <> "!\")\n"
         <> "  |> promise.resolve\n"
         <> "}\n"
       simplifile.write(to: handler_path, contents: content)
@@ -103,3 +118,6 @@ fn write_handler(package_name: String) -> Result(Nil, String) {
     }
   }
 }
+
+@external(javascript, "../gflare/ffi.mjs", "get_iso_date")
+fn do_get_iso_date() -> String

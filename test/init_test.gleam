@@ -38,7 +38,8 @@ pub fn init_adds_cloudflare_section_test() {
     <> "compatibility_date = \"2025-01-01\"\n"
     <> "\n"
     <> "[cloudflare.bindings]\n"
-  let assert Ok(_) = simplifile.append(to: dir <> "/gleam.toml", contents: section)
+  let assert Ok(_) =
+    simplifile.append(to: dir <> "/gleam.toml", contents: section)
 
   let assert Ok(updated) = simplifile.read(dir <> "/gleam.toml")
   updated
@@ -96,14 +97,13 @@ pub fn init_creates_handler_file_test() {
     <> "  |> promise.resolve\n"
     <> "}\n"
   let assert Ok(_) =
-    simplifile.write(
-      to: dir <> "/src/my_app.gleam",
-      contents: handler_content,
-    )
+    simplifile.write(to: dir <> "/src/my_app.gleam", contents: handler_content)
 
   let assert Ok(content) = simplifile.read(dir <> "/src/my_app.gleam")
   content
-  |> string.contains("pub fn fetch(request: HttpRequest, env: Env, ctx: Context)")
+  |> string.contains(
+    "pub fn fetch(request: HttpRequest, env: Env, ctx: Context)",
+  )
   |> should.be_true
   content
   |> string.contains("response.new(200)")
@@ -118,10 +118,7 @@ pub fn init_skips_existing_handler_test() {
 
   let existing_handler = "pub fn main() { Nil }\n"
   let assert Ok(_) =
-    simplifile.write(
-      to: dir <> "/src/my_app.gleam",
-      contents: existing_handler,
-    )
+    simplifile.write(to: dir <> "/src/my_app.gleam", contents: existing_handler)
 
   let assert Ok(content) = simplifile.read(dir <> "/src/my_app.gleam")
   content
@@ -143,10 +140,10 @@ pub fn extract_package_name_test() {
   case name_line {
     Ok(line) -> {
       let name =
-        line |> string.drop_start(7) |> string.trim |> string.replace(
-          "\"",
-          with: "",
-        )
+        line
+        |> string.drop_start(7)
+        |> string.trim
+        |> string.replace("\"", with: "")
       name |> should.equal("my_cool_app")
     }
     Error(_) -> should.fail()
@@ -177,7 +174,8 @@ pub fn full_init_workflow_test() {
     <> "compatibility_date = \"2025-01-01\"\n"
     <> "\n"
     <> "[cloudflare.bindings]\n"
-  let assert Ok(_) = simplifile.append(to: dir <> "/gleam.toml", contents: section)
+  let assert Ok(_) =
+    simplifile.append(to: dir <> "/gleam.toml", contents: section)
 
   let handler =
     "import gflare/bindings.{type Env}\n"
@@ -199,9 +197,12 @@ pub fn full_init_workflow_test() {
   |> string.contains("[cloudflare]")
   |> should.be_true
 
-  let assert Ok(handler_content) = simplifile.read(dir <> "/src/worker_app.gleam")
+  let assert Ok(handler_content) =
+    simplifile.read(dir <> "/src/worker_app.gleam")
   handler_content
-  |> string.contains("pub fn fetch(request: HttpRequest, env: Env, ctx: Context)")
+  |> string.contains(
+    "pub fn fetch(request: HttpRequest, env: Env, ctx: Context)",
+  )
   |> should.be_true
 
   let _ = simplifile.delete(dir)

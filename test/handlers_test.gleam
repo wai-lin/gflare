@@ -8,19 +8,22 @@ pub fn main() {
 }
 
 pub fn detect_fetch_handler_test() {
-  let mjs = "export function fetch(request, env, ctx) {\n  return new Response('ok');\n}"
+  let mjs =
+    "export function fetch(request, env, ctx) {\n  return new Response('ok');\n}"
   handlers.detect_handlers(mjs)
   |> should.equal(["fetch"])
 }
 
 pub fn detect_scheduled_handler_test() {
-  let mjs = "export async function scheduled(event) {\n  console.log('tick');\n}"
+  let mjs =
+    "export async function scheduled(event) {\n  console.log('tick');\n}"
   handlers.detect_handlers(mjs)
   |> should.equal(["scheduled"])
 }
 
 pub fn detect_queue_handler_test() {
-  let mjs = "export function queue(batch) {\n  batch.messages.forEach(m => m.ack());\n}"
+  let mjs =
+    "export function queue(batch) {\n  batch.messages.forEach(m => m.ack());\n}"
   handlers.detect_handlers(mjs)
   |> should.equal(["queue"])
 }
@@ -47,7 +50,8 @@ pub fn detect_no_false_positives_test() {
 }
 
 pub fn detect_async_fetch_test() {
-  let mjs = "export async function fetch(request) { return new Response('ok'); }"
+  let mjs =
+    "export async function fetch(request) { return new Response('ok'); }"
   handlers.detect_handlers(mjs)
   |> should.equal(["fetch"])
 }

@@ -261,7 +261,7 @@ use result <- promise.await(turso.batch(
     #("INSERT INTO users (name) VALUES (?)", [turso.text("Alice")]),
     #("INSERT INTO users (name) VALUES (?)", [turso.text("Bob")]),
   ],
-  Nil,
+  turso.Write,
 ))
 
 // Transaction (rolls back on any error)

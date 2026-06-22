@@ -1,12 +1,16 @@
 import gleeunit
 import gleeunit/should
 
-import gleam/io
-import gleam/list
-import gleam/string
 import gflare/cli/db/generate
 import gflare/cli/db/parse_sql
-import gflare/cli/db/types.{D1, GBool, GFloat, GInt, GOption, GString, ParsedQuery, QueryParam, ResultSet, Turso}
+import gflare/cli/db/types.{
+  D1, GBool, GFloat, GInt, GOption, GString, ParsedQuery, QueryParam, ResultSet,
+  Turso,
+}
+import gleam/io
+import gleam/list
+import gleam/result
+import gleam/string
 
 pub fn main() {
   gleeunit.main()
@@ -15,31 +19,41 @@ pub fn main() {
 // Type parsing tests
 
 pub fn parse_gleam_type_int_test() {
-  types.parse_gleam_type("Int") |> should.equal(GInt)
+  types.parse_gleam_type("Int") |> result.unwrap(GString) |> should.equal(GInt)
 }
 
 pub fn parse_gleam_type_float_test() {
-  types.parse_gleam_type("Float") |> should.equal(GFloat)
+  types.parse_gleam_type("Float")
+  |> result.unwrap(GString)
+  |> should.equal(GFloat)
 }
 
 pub fn parse_gleam_type_string_test() {
-  types.parse_gleam_type("String") |> should.equal(GString)
+  types.parse_gleam_type("String")
+  |> result.unwrap(GInt)
+  |> should.equal(GString)
 }
 
 pub fn parse_gleam_type_bool_test() {
-  types.parse_gleam_type("Bool") |> should.equal(GBool)
+  types.parse_gleam_type("Bool")
+  |> result.unwrap(GString)
+  |> should.equal(GBool)
 }
 
 pub fn parse_gleam_type_option_int_test() {
-  types.parse_gleam_type("Option(Int)") |> should.equal(GOption(GInt))
+  types.parse_gleam_type("Option(Int)")
+  |> result.unwrap(GString)
+  |> should.equal(GOption(GInt))
 }
 
 pub fn parse_gleam_type_option_string_test() {
-  types.parse_gleam_type("Option(String)") |> should.equal(GOption(GString))
+  types.parse_gleam_type("Option(String)")
+  |> result.unwrap(GInt)
+  |> should.equal(GOption(GString))
 }
 
 pub fn parse_gleam_type_unknown_test() {
-  types.parse_gleam_type("Unknown") |> should.equal(GString)
+  types.parse_gleam_type("Unknown") |> should.be_error()
 }
 
 // Type to string tests
@@ -79,7 +93,8 @@ pub fn gleam_type_to_decoder_string_test() {
 }
 
 pub fn gleam_type_to_decoder_option_test() {
-  types.gleam_type_to_decoder(GOption(GString)) |> should.equal("decode.optional(decode.string)")
+  types.gleam_type_to_decoder(GOption(GString))
+  |> should.equal("decode.optional(decode.string)")
 }
 
 // Type to D1 bind tests
@@ -107,19 +122,22 @@ pub fn gleam_type_to_turso_value_string_test() {
 }
 
 pub fn gleam_type_to_turso_value_option_test() {
-  types.gleam_type_to_turso_value(GOption(GInt)) |> should.equal("turso.null_value")
+  types.gleam_type_to_turso_value(GOption(GInt))
+  |> should.equal("turso.null_value")
 }
 
 // SQL parsing tests - these test the parse_sql_content function indirectly
 
 pub fn parse_simple_select_test() {
-  let sql = "-- params: user_id: Int\n-- returns: id: Int, name: String\nSELECT id, name FROM users WHERE id = ?1"
+  let sql =
+    "-- params: user_id: Int\n-- returns: id: Int, name: String\nSELECT id, name FROM users WHERE id = ?1"
   case parse_sql.parse_file_content(sql) {
     Ok(query) -> {
       query.name |> should.equal("")
       list.length(query.params) |> should.equal(1)
       list.length(query.returns) |> should.equal(2)
-      string.contains(query.sql, "SELECT id, name FROM users") |> should.be_true()
+      string.contains(query.sql, "SELECT id, name FROM users")
+      |> should.be_true()
     }
     Error(e) -> {
       io.println(e.message)
@@ -129,7 +147,8 @@ pub fn parse_simple_select_test() {
 }
 
 pub fn parse_insert_test() {
-  let sql = "-- params: name: String, email: String\nINSERT INTO users (name, email) VALUES (?1, ?2)"
+  let sql =
+    "-- params: name: String, email: String\nINSERT INTO users (name, email) VALUES (?1, ?2)"
   case parse_sql.parse_file_content(sql) {
     Ok(query) -> {
       query.name |> should.equal("")
@@ -145,12 +164,14 @@ pub fn parse_insert_test() {
 }
 
 pub fn parse_with_options_test() {
-  let sql = "-- params: user_id: Int\n-- returns: id: Int, name: String, email: Option(String)\nSELECT id, name, email FROM users WHERE id = ?1"
+  let sql =
+    "-- params: user_id: Int\n-- returns: id: Int, name: String, email: Option(String)\nSELECT id, name, email FROM users WHERE id = ?1"
   case parse_sql.parse_file_content(sql) {
     Ok(query) -> {
       list.length(query.returns) |> should.equal(3)
       case query.returns {
-        [_, _, email_field] -> email_field.gleam_type |> should.equal(GOption(GString))
+        [_, _, email_field] ->
+          email_field.gleam_type |> should.equal(GOption(GString))
         _ -> should.fail()
       }
     }
@@ -185,7 +206,8 @@ pub fn parse_empty_sql_test() {
 }
 
 pub fn parse_multiline_query_test() {
-  let sql = "-- params: user_id: Int\n-- returns: id: Int, name: String\nSELECT\n  id,\n  name\nFROM users\nWHERE id = ?1"
+  let sql =
+    "-- params: user_id: Int\n-- returns: id: Int, name: String\nSELECT\n  id,\n  name\nFROM users\nWHERE id = ?1"
   case parse_sql.parse_file_content(sql) {
     Ok(query) -> {
       string.contains(query.sql, "SELECT") |> should.be_true()
@@ -233,7 +255,9 @@ pub fn generate_turso_module_test() {
       sql: "SELECT id, name FROM users WHERE id = ?1",
     ),
   ]
-  case generate.generate_sql_module(queries, Turso, "/tmp/test_sql_turso.gleam") {
+  case
+    generate.generate_sql_module(queries, Turso, "/tmp/test_sql_turso.gleam")
+  {
     Ok(Nil) -> Nil
     Error(e) -> {
       io.println(e)

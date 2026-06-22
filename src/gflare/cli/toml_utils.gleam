@@ -34,10 +34,7 @@ pub type DoClass {
 }
 
 pub type Config {
-  Config(
-    package_name: String,
-    cloudflare: CfConfig,
-  )
+  Config(package_name: String, cloudflare: CfConfig)
 }
 
 pub fn load_config() -> Result(Config, String) {
@@ -51,9 +48,7 @@ pub fn load_config() -> Result(Config, String) {
 pub fn parse_config(content: String) -> Result(Config, String) {
   use parsed <- result.try(
     tom.parse(content)
-    |> result.map_error(fn(err) {
-      "TOML parse error: " <> string.inspect(err)
-    }),
+    |> result.map_error(fn(err) { "TOML parse error: " <> string.inspect(err) }),
   )
 
   use package_name <- result.try(
@@ -115,7 +110,9 @@ fn parse_do_config(cf_table: dict.Dict(String, Toml)) -> CfDoConfig {
   }
 }
 
-fn parse_do_class(class_table: dict.Dict(String, Toml)) -> Result(DoClass, String) {
+fn parse_do_class(
+  class_table: dict.Dict(String, Toml),
+) -> Result(DoClass, String) {
   use name <- result.try(
     get_string(class_table, ["name"])
     |> result.replace_error("Missing DO class name"),
@@ -175,9 +172,7 @@ fn get_array_of_tables(
   case tom.get(table, path) {
     Ok(tom.ArrayOfTables(tables)) -> Ok(tables)
     Ok(tom.Array(items)) ->
-      Ok(list.filter_map(items, fn(item) {
-        tom.as_table(item)
-      }))
+      Ok(list.filter_map(items, fn(item) { tom.as_table(item) }))
     _ -> Error("Not an array of tables")
   }
 }

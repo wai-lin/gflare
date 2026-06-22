@@ -1,9 +1,9 @@
+import gflare/error.{type Error, KvError}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/option.{type Option, None, Some}
-import gflare/error.{type Error, KvError}
 
 pub type Kv
 
@@ -52,11 +52,7 @@ pub type KvKey {
 }
 
 pub type ListResult {
-  ListResult(
-    keys: List(KvKey),
-    list_complete: Bool,
-    cursor: Option(String),
-  )
+  ListResult(keys: List(KvKey), list_complete: Bool, cursor: Option(String))
 }
 
 pub type GetWithMetadataResult {
@@ -75,10 +71,11 @@ pub fn get(
   key: String,
   options: GetOptions,
 ) -> Promise(Result(String, Error)) {
-  let opts = json.object([
-    #("type_", json.string(options.type_)),
-    #("cache_ttl", option_int_to_json(options.cache_ttl)),
-  ])
+  let opts =
+    json.object([
+      #("type_", json.string(options.type_)),
+      #("cache_ttl", option_int_to_json(options.cache_ttl)),
+    ])
   use result <- promise.await(do_get(namespace, key, opts))
   case result {
     Ok(value) -> promise.resolve(Ok(value))
@@ -98,17 +95,17 @@ pub fn get_with_metadata(
   key: String,
   options: GetOptions,
 ) -> Promise(Result(GetWithMetadataResult, Error)) {
-  let opts = json.object([
-    #("type_", json.string(options.type_)),
-    #("cache_ttl", option_int_to_json(options.cache_ttl)),
-  ])
+  let opts =
+    json.object([
+      #("type_", json.string(options.type_)),
+      #("cache_ttl", option_int_to_json(options.cache_ttl)),
+    ])
   use result <- promise.await(do_get_with_metadata(namespace, key, opts))
   case result {
     Ok(data) -> {
       case decode.run(data, decode_get_with_metadata_result()) {
         Ok(r) -> promise.resolve(Ok(r))
-        Error(_) ->
-          promise.resolve(Error(KvError("Failed to decode response")))
+        Error(_) -> promise.resolve(Error(KvError("Failed to decode response")))
       }
     }
     Error(msg) -> promise.resolve(Error(KvError(msg)))
@@ -117,7 +114,11 @@ pub fn get_with_metadata(
 
 fn decode_get_with_metadata_result() {
   use value <- decode.field("value", decode.string)
-  use metadata <- decode.optional_field("metadata", None, decode.optional(decode.dynamic))
+  use metadata <- decode.optional_field(
+    "metadata",
+    None,
+    decode.optional(decode.dynamic),
+  )
   decode.success(GetWithMetadataResult(value: value, metadata: metadata))
 }
 
@@ -135,10 +136,11 @@ pub fn put(
   value: String,
   options: PutOptions,
 ) -> Promise(Result(Nil, Error)) {
-  let opts = json.object([
-    #("expiration", option_int_to_json(options.expiration)),
-    #("expiration_ttl", option_int_to_json(options.expiration_ttl)),
-  ])
+  let opts =
+    json.object([
+      #("expiration", option_int_to_json(options.expiration)),
+      #("expiration_ttl", option_int_to_json(options.expiration_ttl)),
+    ])
   use result <- promise.await(do_put(namespace, key, value, opts))
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
@@ -149,10 +151,7 @@ pub fn put(
 @external(javascript, "../gflare_ffi_kv.mjs", "kv_delete")
 fn do_delete(namespace: Kv, key: String) -> Promise(Result(Dynamic, String))
 
-pub fn delete(
-  namespace: Kv,
-  key: String,
-) -> Promise(Result(Nil, Error)) {
+pub fn delete(namespace: Kv, key: String) -> Promise(Result(Nil, Error)) {
   use result <- promise.await(do_delete(namespace, key))
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
@@ -161,18 +160,22 @@ pub fn delete(
 }
 
 @external(javascript, "../gflare_ffi_kv.mjs", "kv_list")
-fn do_list(namespace: Kv, options: json.Json) -> Promise(Result(Dynamic, String))
+fn do_list(
+  namespace: Kv,
+  options: json.Json,
+) -> Promise(Result(Dynamic, String))
 
 pub fn list(
   namespace: Kv,
   options: ListOptions,
 ) -> Promise(Result(ListResult, Error)) {
-  let opts = json.object([
-    #("prefix", option_string_to_json(options.prefix)),
-    #("cursor", option_string_to_json(options.cursor)),
-    #("limit", option_int_to_json(options.limit)),
-    #("reverse", option_bool_to_json(options.reverse)),
-  ])
+  let opts =
+    json.object([
+      #("prefix", option_string_to_json(options.prefix)),
+      #("cursor", option_string_to_json(options.cursor)),
+      #("limit", option_int_to_json(options.limit)),
+      #("reverse", option_bool_to_json(options.reverse)),
+    ])
   use result <- promise.await(do_list(namespace, opts))
   case result {
     Ok(data) -> {
@@ -189,14 +192,30 @@ pub fn list(
 fn decode_list_result() {
   use keys <- decode.field("keys", decode.list(decode_kv_key()))
   use list_complete <- decode.field("list_complete", decode.bool)
-  use cursor <- decode.optional_field("cursor", None, decode.optional(decode.string))
-  decode.success(ListResult(keys: keys, list_complete: list_complete, cursor: cursor))
+  use cursor <- decode.optional_field(
+    "cursor",
+    None,
+    decode.optional(decode.string),
+  )
+  decode.success(ListResult(
+    keys: keys,
+    list_complete: list_complete,
+    cursor: cursor,
+  ))
 }
 
 fn decode_kv_key() {
   use name <- decode.field("name", decode.string)
-  use metadata <- decode.optional_field("metadata", None, decode.optional(decode.dynamic))
-  use expiration <- decode.optional_field("expiration", None, decode.optional(decode.int))
+  use metadata <- decode.optional_field(
+    "metadata",
+    None,
+    decode.optional(decode.dynamic),
+  )
+  use expiration <- decode.optional_field(
+    "expiration",
+    None,
+    decode.optional(decode.int),
+  )
   decode.success(KvKey(name: name, metadata: metadata, expiration: expiration))
 }
 

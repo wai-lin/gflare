@@ -35,12 +35,7 @@ pub type DbBackend {
 }
 
 pub type MigrationFile {
-  MigrationFile(
-    version: Int,
-    name: String,
-    path: String,
-    sql: String,
-  )
+  MigrationFile(version: Int, name: String, path: String, sql: String)
 }
 
 pub fn gleam_type_to_string(t: GleamType) -> String {
@@ -59,29 +54,34 @@ pub fn gleam_type_to_string(t: GleamType) -> String {
   }
 }
 
-pub fn parse_gleam_type(s: String) -> GleamType {
+pub fn parse_gleam_type(s: String) -> Result(GleamType, String) {
   case s {
-    "Int" -> GInt
-    "Float" -> GFloat
-    "String" -> GString
-    "Bool" -> GBool
-    "BitArray" -> GBitArray
-    "Option(Int)" -> GOption(GInt)
-    "Option(Float)" -> GOption(GFloat)
-    "Option(String)" -> GOption(GString)
-    "Option(Bool)" -> GOption(GBool)
-    "Option(BitArray)" -> GOption(GBitArray)
-    "Date" -> GDate
-    "Time" -> GTime
-    "Timestamp" -> GTimestamp
-    "Uuid" -> GUuid
-    "Json" -> GJson
-    "Option(Date)" -> GOption(GDate)
-    "Option(Time)" -> GOption(GTime)
-    "Option(Timestamp)" -> GOption(GTimestamp)
-    "Option(Uuid)" -> GOption(GUuid)
-    "Option(Json)" -> GOption(GJson)
-    _ -> GString
+    "Int" -> Ok(GInt)
+    "Float" -> Ok(GFloat)
+    "String" -> Ok(GString)
+    "Bool" -> Ok(GBool)
+    "BitArray" -> Ok(GBitArray)
+    "Option(Int)" -> Ok(GOption(GInt))
+    "Option(Float)" -> Ok(GOption(GFloat))
+    "Option(String)" -> Ok(GOption(GString))
+    "Option(Bool)" -> Ok(GOption(GBool))
+    "Option(BitArray)" -> Ok(GOption(GBitArray))
+    "Date" -> Ok(GDate)
+    "Time" -> Ok(GTime)
+    "Timestamp" -> Ok(GTimestamp)
+    "Uuid" -> Ok(GUuid)
+    "Json" -> Ok(GJson)
+    "Option(Date)" -> Ok(GOption(GDate))
+    "Option(Time)" -> Ok(GOption(GTime))
+    "Option(Timestamp)" -> Ok(GOption(GTimestamp))
+    "Option(Uuid)" -> Ok(GOption(GUuid))
+    "Option(Json)" -> Ok(GOption(GJson))
+    _ ->
+      Error(
+        "Unknown type: "
+        <> s
+        <> ". Expected one of: Int, Float, String, Bool, BitArray, Date, Time, Timestamp, Uuid, Json, or Option(T)",
+      )
   }
 }
 

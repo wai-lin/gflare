@@ -1,9 +1,4 @@
 import argv
-import gleam/io
-import gleam/list
-import gleam/option.{None, Some}
-import gleam/order.{type Order, Eq, Gt, Lt}
-import gleam/string
 import gflare/cli/db/generate
 import gflare/cli/db/parse_sql
 import gflare/cli/db/types.{D1, Turso}
@@ -11,6 +6,11 @@ import gflare/cli/toml_utils
 import gflare/env
 import gflare/migrate
 import gflare/turso
+import gleam/io
+import gleam/list
+import gleam/option.{None, Some}
+import gleam/order.{type Order, Eq, Gt, Lt}
+import gleam/string
 import simplifile
 
 pub fn run() -> Nil {
@@ -22,7 +22,9 @@ pub fn run() -> Nil {
       io.println("Usage: gflare db <command>")
       io.println("")
       io.println("Commands:")
-      io.println("  generate                    Generate Gleam code from *.sql files")
+      io.println(
+        "  generate                    Generate Gleam code from *.sql files",
+      )
       io.println("  migrate create <name>       Create a new migration file")
       io.println("  migrate list                List pending migrations")
       io.println("  migrate run                 Apply pending migrations")
@@ -61,17 +63,23 @@ fn run_generate(args: List(String)) -> Nil {
 
               case simplifile.create_directory_all(output_dir) {
                 Ok(Nil) -> {
-                  case generate.generate_sql_module(queries, backend, output_path) {
+                  case
+                    generate.generate_sql_module(queries, backend, output_path)
+                  {
                     Ok(Nil) ->
                       io.println(
-                        "Generated " <> int_to_string(list.length(queries)) <> " functions in " <> output_path,
+                        "Generated "
+                        <> int_to_string(list.length(queries))
+                        <> " functions in "
+                        <> output_path,
                       )
                     Error(e) -> io.println_error("Error: " <> e)
                   }
                 }
                 Error(e) ->
                   io.println_error(
-                    "Failed to create directory: " <> simplifile.describe_error(e),
+                    "Failed to create directory: "
+                    <> simplifile.describe_error(e),
                   )
               }
             }
@@ -110,18 +118,27 @@ fn create_migration(name: String) -> Nil {
       let filename = padded <> "_" <> name <> ".sql"
       let filepath = migrations_dir <> "/" <> filename
 
-      case simplifile.write(
-        to: filepath,
-        contents: "-- Migration: " <> name <> "\n-- Created at: " <> get_timestamp() <> "\n\n-- Write your SQL here\n",
-      ) {
+      case
+        simplifile.write(
+          to: filepath,
+          contents: "-- Migration: "
+            <> name
+            <> "\n-- Created at: "
+            <> get_timestamp()
+            <> "\n\n-- Write your SQL here\n",
+        )
+      {
         Ok(Nil) -> io.println("Created migration: " <> filepath)
         Error(e) ->
-          io.println_error("Failed to create migration: " <> simplifile.describe_error(e))
+          io.println_error(
+            "Failed to create migration: " <> simplifile.describe_error(e),
+          )
       }
     }
     Error(e) ->
       io.println_error(
-        "Failed to create migrations directory: " <> simplifile.describe_error(e),
+        "Failed to create migrations directory: "
+        <> simplifile.describe_error(e),
       )
   }
 }
@@ -143,7 +160,10 @@ fn list_migrations() -> Nil {
         }
       }
     }
-    Error(_) -> io.println("No migrations directory found. Run 'gflare db migrate create <name>' to create one.")
+    Error(_) ->
+      io.println(
+        "No migrations directory found. Run 'gflare db migrate create <name>' to create one.",
+      )
   }
 }
 
@@ -156,7 +176,9 @@ fn run_migrations(args: List(String)) -> Nil {
   case backend {
     D1 -> {
       io.println("Running migrations for D1...")
-      io.println("Use 'wrangler d1 migrations apply <binding_name>' to apply D1 migrations.")
+      io.println(
+        "Use 'wrangler d1 migrations apply <binding_name>' to apply D1 migrations.",
+      )
       io.println("Or use --turso flag to apply migrations to a Turso database.")
     }
     Turso -> run_turso_migrations()
@@ -178,17 +200,23 @@ fn run_turso_migrations() -> Nil {
       }
     }
     None, None -> {
-      io.println_error("Error: TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables are required.")
+      io.println_error(
+        "Error: TURSO_DATABASE_URL and TURSO_AUTH_TOKEN environment variables are required.",
+      )
       io.println("Example:")
       io.println("  export TURSO_DATABASE_URL=lib://my-db.turso.io")
       io.println("  export TURSO_AUTH_TOKEN=eyJ...")
       io.println("  gflare db migrate run --turso")
     }
     None, _ -> {
-      io.println_error("Error: TURSO_DATABASE_URL environment variable is required.")
+      io.println_error(
+        "Error: TURSO_DATABASE_URL environment variable is required.",
+      )
     }
     _, None -> {
-      io.println_error("Error: TURSO_AUTH_TOKEN environment variable is required.")
+      io.println_error(
+        "Error: TURSO_AUTH_TOKEN environment variable is required.",
+      )
     }
   }
 }
@@ -288,5 +316,8 @@ fn digit_char(d: Int) -> String {
 }
 
 fn get_timestamp() -> String {
-  "2026-01-01T00:00:00Z"
+  do_get_iso_timestamp()
 }
+
+@external(javascript, "../gflare/ffi.mjs", "get_iso_timestamp")
+fn do_get_iso_timestamp() -> String

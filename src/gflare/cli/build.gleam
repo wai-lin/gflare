@@ -1,12 +1,12 @@
+import gflare/cli/generate
+import gflare/cli/handlers
+import gflare/cli/toml_utils
 import gleam/io
 import gleam/list
 import gleam/result
 import gleam/string
 import shellout
 import simplifile
-import gflare/cli/toml_utils
-import gflare/cli/handlers
-import gflare/cli/generate
 
 pub fn run(deploy deployment: Bool, dev development: Bool) -> Nil {
   let result = do_build(deployment, development)
@@ -29,15 +29,14 @@ fn do_build(deploy: Bool, dev: Bool) -> Result(Nil, String) {
   let cf_config = config.cloudflare
   let cf_name = cf_config.name
   let compat_date = case cf_config.compatibility_date {
-    "" -> "2025-01-01"
+    "" -> do_get_iso_date()
     d -> d
   }
 
   io.println("Building Gleam project...")
   use _ <- result.try(run_gleam_build())
 
-  let build_dir =
-    "build/dev/javascript/" <> package_name
+  let build_dir = "build/dev/javascript/" <> package_name
   let main_mjs = build_dir <> "/" <> package_name <> ".mjs"
 
   use main_content <- result.try(
@@ -69,14 +68,20 @@ fn do_build(deploy: Bool, dev: Bool) -> Result(Nil, String) {
   )
 
   let entrypoint_path = dist_dir <> "/index.js"
-  use _ <- result.try(
-    generate.entrypoint(entrypoint_path, package_name, detected_handlers, do_classes),
-  )
+  use _ <- result.try(generate.entrypoint(
+    entrypoint_path,
+    package_name,
+    detected_handlers,
+    do_classes,
+  ))
 
   let wrangler_path = "wrangler.toml"
-  use _ <- result.try(
-    generate.wrangler_config(wrangler_path, cf_name, compat_date, config),
-  )
+  use _ <- result.try(generate.wrangler_config(
+    wrangler_path,
+    cf_name,
+    compat_date,
+    config,
+  ))
 
   io.println("Bundling with esbuild...")
   let output_path = dist_dir <> "/bundle.js"
@@ -103,9 +108,11 @@ fn do_build(deploy: Bool, dev: Bool) -> Result(Nil, String) {
 }
 
 fn run_gleam_build() -> Result(Nil, String) {
-  case shellout.command("gleam", ["build", "--target", "javascript"], ".", [
-    shellout.LetBeStdout,
-  ]) {
+  case
+    shellout.command("gleam", ["build", "--target", "javascript"], ".", [
+      shellout.LetBeStdout,
+    ])
+  {
     Ok(_) -> Ok(Nil)
     Error(#(code, msg)) ->
       Error("gleam build failed (exit " <> string.inspect(code) <> "): " <> msg)
@@ -113,43 +120,58 @@ fn run_gleam_build() -> Result(Nil, String) {
 }
 
 fn run_esbuild(input: String, output: String) -> Result(Nil, String) {
-  case shellout.command(
-    "npx",
-    [
-      "esbuild",
-      input,
-      "--bundle",
-      "--format=esm",
-      "--platform=neutral",
-      "--outfile=" <> output,
-      "--conditions=import",
-    ],
-    ".",
-    [shellout.LetBeStdout],
-  ) {
+  case
+    shellout.command(
+      "npx",
+      [
+        "esbuild",
+        input,
+        "--bundle",
+        "--format=esm",
+        "--platform=neutral",
+        "--outfile=" <> output,
+        "--conditions=import",
+      ],
+      ".",
+      [shellout.LetBeStdout],
+    )
+  {
     Ok(_) -> Ok(Nil)
     Error(#(code, msg)) ->
-      Error("esbuild bundling failed (exit " <> string.inspect(code) <> "): " <> msg)
+      Error(
+        "esbuild bundling failed (exit " <> string.inspect(code) <> "): " <> msg,
+      )
   }
 }
 
 fn run_wrangler_dev() -> Result(Nil, String) {
-  case shellout.command("npx", ["wrangler", "dev"], ".", [shellout.LetBeStdout]) {
+  case
+    shellout.command("npx", ["wrangler", "dev"], ".", [shellout.LetBeStdout])
+  {
     Ok(_) -> Ok(Nil)
     Error(#(code, msg)) ->
-      Error("wrangler dev failed (exit " <> string.inspect(code) <> "): " <> msg)
+      Error(
+        "wrangler dev failed (exit " <> string.inspect(code) <> "): " <> msg,
+      )
   }
 }
 
 fn run_wrangler_deploy() -> Result(Nil, String) {
-  case shellout.command("npx", ["wrangler", "deploy"], ".", [shellout.LetBeStdout]) {
+  case
+    shellout.command("npx", ["wrangler", "deploy"], ".", [shellout.LetBeStdout])
+  {
     Ok(_) -> Ok(Nil)
     Error(#(code, msg)) ->
-      Error("wrangler deploy failed (exit " <> string.inspect(code) <> "): " <> msg)
+      Error(
+        "wrangler deploy failed (exit " <> string.inspect(code) <> "): " <> msg,
+      )
   }
 }
 
-fn update_wrangler_main(wrangler_path: String, output_path: String) -> Result(Nil, String) {
+fn update_wrangler_main(
+  wrangler_path: String,
+  output_path: String,
+) -> Result(Nil, String) {
   use content <- result.try(
     simplifile.read(wrangler_path)
     |> result.map_error(fn(_) { "Failed to read wrangler.toml" }),
@@ -161,3 +183,6 @@ fn update_wrangler_main(wrangler_path: String, output_path: String) -> Result(Ni
   simplifile.write(to: wrangler_path, contents: updated)
   |> result.map_error(fn(_) { "Failed to update wrangler.toml" })
 }
+
+@external(javascript, "../gflare/ffi.mjs", "get_iso_date")
+fn do_get_iso_date() -> String

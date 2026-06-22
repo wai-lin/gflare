@@ -1,28 +1,24 @@
+import gflare/error.{type Error, DurableObjectError}
 import gleam/dynamic.{type Dynamic}
 import gleam/dynamic/decode
 import gleam/javascript/promise.{type Promise}
 import gleam/json.{type Json}
 import gleam/option.{type Option, None, Some}
-import gflare/error.{type Error, DurableObjectError}
 
 pub type Namespace
+
 pub type Id
+
 pub type Stub
 
-pub fn id_from_name(
-  namespace: Namespace,
-  name: String,
-) -> Id {
+pub fn id_from_name(namespace: Namespace, name: String) -> Id {
   do_id_from_name(namespace, name)
 }
 
 @external(javascript, "../gflare_ffi_do.mjs", "do_id_from_name")
 fn do_id_from_name(namespace: Namespace, name: String) -> Id
 
-pub fn id_from_string(
-  namespace: Namespace,
-  id: String,
-) -> Id {
+pub fn id_from_string(namespace: Namespace, id: String) -> Id {
   do_id_from_string(namespace, id)
 }
 
@@ -44,7 +40,10 @@ pub fn fetch_options() -> FetchOptions {
   FetchOptions(method: "GET", body: None)
 }
 
-pub fn fetch_options_with(method method: String, body body: Option(Json)) -> FetchOptions {
+pub fn fetch_options_with(
+  method method: String,
+  body body: Option(Json),
+) -> FetchOptions {
   FetchOptions(method:, body:)
 }
 
@@ -60,13 +59,14 @@ pub fn fetch(
   path: String,
   options: FetchOptions,
 ) -> Promise(Result(Dynamic, Error)) {
-  let opts = json.object([
-    #("method", json.string(options.method)),
-    #("body", case options.body {
-      Some(b) -> b
-      None -> json.null()
-    }),
-  ])
+  let opts =
+    json.object([
+      #("method", json.string(options.method)),
+      #("body", case options.body {
+        Some(b) -> b
+        None -> json.null()
+      }),
+    ])
   use result <- promise.await(do_fetch(stub, path, opts))
   case result {
     Ok(data) -> promise.resolve(Ok(data))
@@ -86,7 +86,11 @@ pub fn get(stub: Stub) -> Promise(Result(Dynamic, Error)) {
 }
 
 @external(javascript, "../gflare_ffi_do.mjs", "do_set")
-fn do_set(stub: Stub, key: String, value: Json) -> Promise(Result(Dynamic, String))
+fn do_set(
+  stub: Stub,
+  key: String,
+  value: Json,
+) -> Promise(Result(Dynamic, String))
 
 pub fn set(
   stub: Stub,
@@ -103,10 +107,7 @@ pub fn set(
 @external(javascript, "../gflare_ffi_do.mjs", "do_delete")
 fn do_delete_key(stub: Stub, key: String) -> Promise(Result(Dynamic, String))
 
-pub fn delete_key(
-  stub: Stub,
-  key: String,
-) -> Promise(Result(Nil, Error)) {
+pub fn delete_key(stub: Stub, key: String) -> Promise(Result(Nil, Error)) {
   use result <- promise.await(do_delete_key(stub, key))
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
@@ -117,9 +118,7 @@ pub fn delete_key(
 @external(javascript, "../gflare_ffi_do.mjs", "do_get_alarm")
 fn do_get_alarm(stub: Stub) -> Promise(Result(Dynamic, String))
 
-pub fn get_alarm(
-  stub: Stub,
-) -> Promise(Result(Option(Int), Error)) {
+pub fn get_alarm(stub: Stub) -> Promise(Result(Option(Int), Error)) {
   use result <- promise.await(do_get_alarm(stub))
   case result {
     Ok(data) -> {
@@ -135,10 +134,7 @@ pub fn get_alarm(
 @external(javascript, "../gflare_ffi_do.mjs", "do_set_alarm")
 fn do_set_alarm(stub: Stub, timestamp: Int) -> Promise(Result(Dynamic, String))
 
-pub fn set_alarm(
-  stub: Stub,
-  timestamp: Int,
-) -> Promise(Result(Nil, Error)) {
+pub fn set_alarm(stub: Stub, timestamp: Int) -> Promise(Result(Nil, Error)) {
   use result <- promise.await(do_set_alarm(stub, timestamp))
   case result {
     Ok(_) -> promise.resolve(Ok(Nil))
