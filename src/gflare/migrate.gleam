@@ -5,6 +5,7 @@ import gflare/turso
 import gflare/turso/error as turso_err
 import gflare/turso/types as turso_types
 import gleam/dynamic/decode
+import gleam/int
 import gleam/io
 import gleam/javascript/promise.{type Promise}
 import gleam/list
@@ -138,7 +139,7 @@ fn execute_pending_turso(
     _ -> {
       io.println(
         "Applying "
-        <> parse.int_to_string(list.length(pending))
+        <> int.to_string(list.length(pending))
         <> " migration(s)...",
       )
       execute_migrations_turso(config, pending)
@@ -199,7 +200,7 @@ fn execute_pending_d1(
     _ -> {
       io.println(
         "Applying "
-        <> parse.int_to_string(list.length(pending))
+        <> int.to_string(list.length(pending))
         <> " migration(s)...",
       )
       execute_migrations_d1(db, pending)

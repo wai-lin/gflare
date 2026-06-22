@@ -6,6 +6,7 @@ import gflare/cli/toml_utils
 import gflare/env
 import gflare/migrate
 import gflare/turso
+import gleam/int
 import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
@@ -81,7 +82,7 @@ fn run_generate(args: List(String)) -> Nil {
                     Ok(Nil) ->
                       io.println(
                         "Generated "
-                        <> int_to_string(list.length(queries))
+                        <> int.to_string(list.length(queries))
                         <> " functions in "
                         <> output_dir,
                       )
@@ -256,7 +257,7 @@ fn get_next_migration_version(dir: String) -> Int {
           }
         })
 
-      case list.sort(versions, fn(a, b) { int_compare(a, b) }) {
+      case list.sort(versions, fn(a, b) { int.compare(a, b) }) {
         [] -> 1
         [last, ..] -> last + 1
       }
@@ -284,53 +285,12 @@ fn parse_version(s: String) -> Result(Int, Nil) {
   })
 }
 
-fn int_compare(a: Int, b: Int) -> Order {
-  case a < b {
-    True -> Lt
-    False ->
-      case a > b {
-        True -> Gt
-        False -> Eq
-      }
-  }
-}
-
 fn pad_number(n: Int, width: Int) -> String {
-  let s = int_to_string(n)
+  let s = int.to_string(n)
   let padding = width - string.length(s)
   case padding > 0 {
     True -> string.repeat("0", padding) <> s
     False -> s
-  }
-}
-
-fn int_to_string(n: Int) -> String {
-  case n {
-    0 -> "0"
-    _ -> {
-      let digit = n % 10
-      let rest = n / 10
-      case rest {
-        0 -> digit_char(digit)
-        _ -> int_to_string(rest) <> digit_char(digit)
-      }
-    }
-  }
-}
-
-fn digit_char(d: Int) -> String {
-  case d {
-    0 -> "0"
-    1 -> "1"
-    2 -> "2"
-    3 -> "3"
-    4 -> "4"
-    5 -> "5"
-    6 -> "6"
-    7 -> "7"
-    8 -> "8"
-    9 -> "9"
-    _ -> "0"
   }
 }
 

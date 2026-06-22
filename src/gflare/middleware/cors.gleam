@@ -1,6 +1,7 @@
 import gflare/request.{type HttpRequest}
 import gflare/response.{type Response}
 import gflare/router.{type Middleware}
+import gleam/int
 import gleam/javascript/promise
 import gleam/list
 import gleam/option.{type Option, None, Some}
@@ -131,7 +132,7 @@ fn add_cors_headers(
         )
         |> response.set_header(
           "Access-Control-Max-Age",
-          int_to_string(config.max_age),
+          int.to_string(config.max_age),
         )
 
       let r = case config.allow_credentials {
@@ -151,25 +152,5 @@ fn add_cors_headers(
       }
     }
     False -> resp
-  }
-}
-
-fn int_to_string(n: Int) -> String {
-  case n {
-    0 -> "0"
-    1 -> "1"
-    2 -> "2"
-    3 -> "3"
-    4 -> "4"
-    5 -> "5"
-    6 -> "6"
-    7 -> "7"
-    8 -> "8"
-    9 -> "9"
-    _ -> {
-      let digit = n % 10
-      let rest = n / 10
-      int_to_string(rest) <> int_to_string(digit)
-    }
   }
 }

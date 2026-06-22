@@ -1,5 +1,6 @@
 import gflare/request.{type HttpRequest}
 import gleam/dynamic.{type Dynamic}
+import gleam/dynamic/decode
 import gleam/int
 import gleam/javascript/promise.{type Promise}
 import gleam/json
@@ -23,9 +24,9 @@ pub type ValidationError {
 pub fn string(field: String) -> Schema(String) {
   Schema(
     decode: fn(data) {
-      case dynamic.classify(data) {
-        "String" -> Ok(dynamic.classify(data))
-        _ -> Error([ValidationError(field, "Expected a string")])
+      case decode.run(data, decode.string) {
+        Ok(value) -> Ok(value)
+        Error(_) -> Error([ValidationError(field, "Expected a string")])
       }
     },
     field_name: field,
@@ -35,11 +36,9 @@ pub fn string(field: String) -> Schema(String) {
 pub fn int(field: String) -> Schema(Int) {
   Schema(
     decode: fn(data) {
-      case dynamic.classify(data) {
-        "Int" -> Ok(0)
-        // Placeholder - actual decoding happens elsewhere
-        "Float" -> Ok(0)
-        _ -> Error([ValidationError(field, "Expected an integer")])
+      case decode.run(data, decode.int) {
+        Ok(value) -> Ok(value)
+        Error(_) -> Error([ValidationError(field, "Expected an integer")])
       }
     },
     field_name: field,
@@ -49,10 +48,9 @@ pub fn int(field: String) -> Schema(Int) {
 pub fn float(field: String) -> Schema(Float) {
   Schema(
     decode: fn(data) {
-      case dynamic.classify(data) {
-        "Float" -> Ok(0.0)
-        "Int" -> Ok(0.0)
-        _ -> Error([ValidationError(field, "Expected a float")])
+      case decode.run(data, decode.float) {
+        Ok(value) -> Ok(value)
+        Error(_) -> Error([ValidationError(field, "Expected a float")])
       }
     },
     field_name: field,
@@ -62,9 +60,9 @@ pub fn float(field: String) -> Schema(Float) {
 pub fn bool(field: String) -> Schema(Bool) {
   Schema(
     decode: fn(data) {
-      case dynamic.classify(data) {
-        "Bool" -> Ok(True)
-        _ -> Error([ValidationError(field, "Expected a boolean")])
+      case decode.run(data, decode.bool) {
+        Ok(value) -> Ok(value)
+        Error(_) -> Error([ValidationError(field, "Expected a boolean")])
       }
     },
     field_name: field,
@@ -304,9 +302,8 @@ pub fn datetime(field: String) -> Schema(String) {
 pub fn one_of(field: String, values: List(String)) -> Schema(String) {
   Schema(
     decode: fn(data) {
-      case dynamic.classify(data) {
-        "String" -> {
-          let value = dynamic.classify(data)
+      case decode.run(data, decode.string) {
+        Ok(value) -> {
           case list.contains(values, value) {
             True -> Ok(value)
             False ->
@@ -318,7 +315,7 @@ pub fn one_of(field: String, values: List(String)) -> Schema(String) {
               ])
           }
         }
-        _ -> Error([ValidationError(field, "Expected a string")])
+        Error(_) -> Error([ValidationError(field, "Expected a string")])
       }
     },
     field_name: field,

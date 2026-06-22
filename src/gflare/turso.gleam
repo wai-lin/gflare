@@ -97,28 +97,34 @@ fn make_request(
   body: String,
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
-  let assert Ok(req) = request.to(url)
-  let req =
-    req
-    |> request.set_header("Authorization", "Bearer " <> config.auth_token)
-    |> request.set_header("Content-Type", "application/json")
-  let req = request.set_body(req, body)
-  use fetch_result <- promise.await(fetch.send(req))
-  case fetch_result {
-    Ok(resp) -> {
-      use text_result <- promise.await(fetch.read_text_body(resp))
-      case text_result {
-        Ok(text_resp) -> {
-          case parser(text_resp.body) {
-            Ok(value) -> promise.resolve(Ok(value))
-            Error(msg) -> promise.resolve(Error(DecodeError(msg)))
+  case request.to(url) {
+    Error(_) ->
+      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Ok(req) -> {
+      let req =
+        req
+        |> request.set_header("Authorization", "Bearer " <> config.auth_token)
+        |> request.set_header("Content-Type", "application/json")
+      let req = request.set_body(req, body)
+      use fetch_result <- promise.await(fetch.send(req))
+      case fetch_result {
+        Ok(resp) -> {
+          use text_result <- promise.await(fetch.read_text_body(resp))
+          case text_result {
+            Ok(text_resp) -> {
+              case parser(text_resp.body) {
+                Ok(value) -> promise.resolve(Ok(value))
+                Error(msg) -> promise.resolve(Error(DecodeError(msg)))
+              }
+            }
+            Error(_) ->
+              promise.resolve(Error(NetworkError("Failed to read response")))
           }
         }
         Error(_) ->
-          promise.resolve(Error(NetworkError("Failed to read response")))
+          promise.resolve(Error(NetworkError("Failed to send request")))
       }
     }
-    Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
   }
 }
 

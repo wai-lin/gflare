@@ -2,6 +2,7 @@ import gleeunit
 import gleeunit/should
 
 import gflare/migrate/parse
+import gleam/int
 import gleam/io
 import gleam/list
 import gleam/order
@@ -86,43 +87,43 @@ pub fn parse_version_from_name_empty_test() {
 // int_compare tests
 
 pub fn int_compare_less_test() {
-  parse.int_compare(1, 2) |> should.equal(order.Lt)
+  int.compare(1, 2) |> should.equal(order.Lt)
 }
 
 pub fn int_compare_greater_test() {
-  parse.int_compare(2, 1) |> should.equal(order.Gt)
+  int.compare(2, 1) |> should.equal(order.Gt)
 }
 
 pub fn int_compare_equal_test() {
-  parse.int_compare(1, 1) |> should.equal(order.Eq)
+  int.compare(1, 1) |> should.equal(order.Eq)
 }
 
 pub fn int_compare_zero_test() {
-  parse.int_compare(0, 0) |> should.equal(order.Eq)
+  int.compare(0, 0) |> should.equal(order.Eq)
 }
 
 // int_to_string tests
 
 pub fn int_to_string_zero_test() {
-  parse.int_to_string(0) |> should.equal("0")
+  int.to_string(0) |> should.equal("0")
 }
 
 pub fn int_to_string_one_test() {
-  parse.int_to_string(1) |> should.equal("1")
+  int.to_string(1) |> should.equal("1")
 }
 
 pub fn int_to_string_multi_digit_test() {
-  parse.int_to_string(123) |> should.equal("123")
+  int.to_string(123) |> should.equal("123")
 }
 
 pub fn int_to_string_large_test() {
-  parse.int_to_string(9999) |> should.equal("9999")
+  int.to_string(9999) |> should.equal("9999")
 }
 
 // parse_migration_file tests (filesystem-based)
 
 fn test_dir_name(n: Int) -> String {
-  "./test_tmp_migrate_" <> parse.int_to_string(n)
+  "./test_tmp_migrate_" <> int.to_string(n)
 }
 
 pub fn parse_migration_file_test() {

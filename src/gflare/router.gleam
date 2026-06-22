@@ -1,3 +1,4 @@
+import gflare/bindings.{type Env}
 import gflare/request.{type HttpRequest}
 import gflare/response.{type Response}
 import gflare/worker.{type Context}
@@ -6,8 +7,6 @@ import gleam/javascript/promise.{type Promise}
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
-
-pub type Env
 
 pub type Router {
   Router(
@@ -375,7 +374,15 @@ fn find_allowed_methods(
     [segment, ..rest] -> {
       case dict.get(node.children, segment) {
         Ok(child) -> find_allowed_methods(child, rest)
-        Error(_) -> []
+        Error(_) ->
+          case node.param_child {
+            Some(param) -> find_allowed_methods(param.node, rest)
+            None ->
+              case node.wildcard_child {
+                Some(_) -> dict.keys(node.handlers)
+                None -> []
+              }
+          }
       }
     }
   }

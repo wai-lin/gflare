@@ -1,14 +1,14 @@
+import gflare/bindings.{type Env}
 import gflare/log.{type Logger}
 import gflare/request.{type HttpRequest}
 import gflare/response.{type Response}
 import gflare/worker.{type Context}
+import gleam/int
 import gleam/javascript/promise.{type Promise}
 import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 import gleam/string
-
-pub type Env
 
 pub type MiddlewareConfig {
   MiddlewareConfig(
@@ -139,7 +139,7 @@ pub fn log_request_end(
     <> " "
     <> path
     <> " "
-    <> int_to_string(status)
+    <> int.to_string(status)
     <> " "
     <> float_to_string(duration_ms)
     <> "ms"
@@ -199,26 +199,6 @@ fn do_response_status(response: Response) -> Int
 
 @external(javascript, "../gflare_ffi_log.mjs", "response_body_text")
 fn do_response_body(response: Response) -> Option(String)
-
-fn int_to_string(n: Int) -> String {
-  case n {
-    0 -> "0"
-    1 -> "1"
-    2 -> "2"
-    3 -> "3"
-    4 -> "4"
-    5 -> "5"
-    6 -> "6"
-    7 -> "7"
-    8 -> "8"
-    9 -> "9"
-    _ -> {
-      let digit = n % 10
-      let rest = n / 10
-      int_to_string(rest) <> int_to_string(digit)
-    }
-  }
-}
 
 fn float_to_string(f: Float) -> String {
   string.inspect(f)

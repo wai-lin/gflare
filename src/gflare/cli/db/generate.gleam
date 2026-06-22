@@ -3,6 +3,7 @@ import gflare/cli/db/types.{
   gleam_type_to_d1_bind, gleam_type_to_decoder, gleam_type_to_string,
   gleam_type_to_turso_value,
 }
+import gleam/int
 import gleam/list
 import gleam/string
 import simplifile
@@ -394,7 +395,7 @@ fn generate_decoder_lines(result_set: List(ResultSet), index: Int) -> String {
         "    use "
         <> field.name
         <> " <- decode.field("
-        <> int_to_string(index)
+        <> int.to_string(index)
         <> ", "
         <> decoder_fn
         <> ")"
@@ -427,24 +428,4 @@ fn escape_sql(sql: String) -> String {
   |> string.replace("\n", "\\n")
   |> string.replace("\r", "\\r")
   |> string.replace("\t", "\\t")
-}
-
-fn int_to_string(n: Int) -> String {
-  case n {
-    0 -> "0"
-    1 -> "1"
-    2 -> "2"
-    3 -> "3"
-    4 -> "4"
-    5 -> "5"
-    6 -> "6"
-    7 -> "7"
-    8 -> "8"
-    9 -> "9"
-    _ -> {
-      let digit = n % 10
-      let rest = n / 10
-      int_to_string(rest) <> int_to_string(digit)
-    }
-  }
 }

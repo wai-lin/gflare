@@ -1,5 +1,5 @@
+import gleam/int
 import gleam/list
-import gleam/order.{type Order, Eq, Gt, Lt}
 import gleam/result
 import gleam/string
 import simplifile
@@ -87,48 +87,7 @@ pub fn list_pending(
         Error(_) -> Error(Nil)
       }
     })
-    |> list.sort(fn(a, b) { int_compare(a.version, b.version) })
+    |> list.sort(fn(a, b) { int.compare(a.version, b.version) })
 
   Ok(migrations)
-}
-
-pub fn int_compare(a: Int, b: Int) -> Order {
-  case a < b {
-    True -> Lt
-    False ->
-      case a > b {
-        True -> Gt
-        False -> Eq
-      }
-  }
-}
-
-pub fn int_to_string(n: Int) -> String {
-  case n {
-    0 -> "0"
-    _ -> {
-      let digit = n % 10
-      let rest = n / 10
-      case rest {
-        0 -> digit_char(digit)
-        _ -> int_to_string(rest) <> digit_char(digit)
-      }
-    }
-  }
-}
-
-fn digit_char(d: Int) -> String {
-  case d {
-    0 -> "0"
-    1 -> "1"
-    2 -> "2"
-    3 -> "3"
-    4 -> "4"
-    5 -> "5"
-    6 -> "6"
-    7 -> "7"
-    8 -> "8"
-    9 -> "9"
-    _ -> "0"
-  }
 }

@@ -119,23 +119,30 @@ fn post_request(
   body: json.Json,
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
-  let assert Ok(req) = request.to(url)
-  let req =
-    req
-    |> request.set_header("Authorization", "Bearer " <> config.token)
-    |> request.set_header("Content-Type", "application/json")
-  let req = request.set_body(req, json.to_string(body))
-  use fetch_result <- promise.await(fetch.send(req))
-  case fetch_result {
-    Ok(resp) -> {
-      use text_result <- promise.await(fetch.read_text_body(resp))
-      case text_result {
-        Ok(text_resp) -> handle_response(resp.status, text_resp.body, parser)
+  case request.to(url) {
+    Error(_) ->
+      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Ok(req) -> {
+      let req =
+        req
+        |> request.set_header("Authorization", "Bearer " <> config.token)
+        |> request.set_header("Content-Type", "application/json")
+      let req = request.set_body(req, json.to_string(body))
+      use fetch_result <- promise.await(fetch.send(req))
+      case fetch_result {
+        Ok(resp) -> {
+          use text_result <- promise.await(fetch.read_text_body(resp))
+          case text_result {
+            Ok(text_resp) ->
+              handle_response(resp.status, text_resp.body, parser)
+            Error(_) ->
+              promise.resolve(Error(NetworkError("Failed to read response")))
+          }
+        }
         Error(_) ->
-          promise.resolve(Error(NetworkError("Failed to read response")))
+          promise.resolve(Error(NetworkError("Failed to send request")))
       }
     }
-    Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
   }
 }
 
@@ -144,20 +151,27 @@ fn get_request(
   url: String,
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
-  let assert Ok(req) = request.to(url)
-  let req =
-    req |> request.set_header("Authorization", "Bearer " <> config.token)
-  use fetch_result <- promise.await(fetch.send(req))
-  case fetch_result {
-    Ok(resp) -> {
-      use text_result <- promise.await(fetch.read_text_body(resp))
-      case text_result {
-        Ok(text_resp) -> handle_response(resp.status, text_resp.body, parser)
+  case request.to(url) {
+    Error(_) ->
+      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Ok(req) -> {
+      let req =
+        req |> request.set_header("Authorization", "Bearer " <> config.token)
+      use fetch_result <- promise.await(fetch.send(req))
+      case fetch_result {
+        Ok(resp) -> {
+          use text_result <- promise.await(fetch.read_text_body(resp))
+          case text_result {
+            Ok(text_resp) ->
+              handle_response(resp.status, text_resp.body, parser)
+            Error(_) ->
+              promise.resolve(Error(NetworkError("Failed to read response")))
+          }
+        }
         Error(_) ->
-          promise.resolve(Error(NetworkError("Failed to read response")))
+          promise.resolve(Error(NetworkError("Failed to send request")))
       }
     }
-    Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
   }
 }
 
@@ -165,29 +179,35 @@ fn delete_request(
   config: CloudConfig,
   url: String,
 ) -> Promise(Result(Nil, TursoError)) {
-  let assert Ok(req) = request.to(url)
-  let req =
-    req |> request.set_header("Authorization", "Bearer " <> config.token)
-  use fetch_result <- promise.await(fetch.send(req))
-  case fetch_result {
-    Ok(resp) -> {
-      use text_result <- promise.await(fetch.read_text_body(resp))
-      case text_result {
-        Ok(text_resp) -> {
-          case resp.status {
-            200 -> promise.resolve(Ok(Nil))
-            404 -> promise.resolve(Error(ApiError("Not found")))
-            _ ->
-              promise.resolve(
-                Error(ApiError("Request failed: " <> text_resp.body)),
-              )
+  case request.to(url) {
+    Error(_) ->
+      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Ok(req) -> {
+      let req =
+        req |> request.set_header("Authorization", "Bearer " <> config.token)
+      use fetch_result <- promise.await(fetch.send(req))
+      case fetch_result {
+        Ok(resp) -> {
+          use text_result <- promise.await(fetch.read_text_body(resp))
+          case text_result {
+            Ok(text_resp) -> {
+              case resp.status {
+                200 -> promise.resolve(Ok(Nil))
+                404 -> promise.resolve(Error(ApiError("Not found")))
+                _ ->
+                  promise.resolve(
+                    Error(ApiError("Request failed: " <> text_resp.body)),
+                  )
+              }
+            }
+            Error(_) ->
+              promise.resolve(Error(NetworkError("Failed to read response")))
           }
         }
         Error(_) ->
-          promise.resolve(Error(NetworkError("Failed to read response")))
+          promise.resolve(Error(NetworkError("Failed to send request")))
       }
     }
-    Error(_) -> promise.resolve(Error(NetworkError("Failed to send request")))
   }
 }
 
