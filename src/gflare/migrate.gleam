@@ -2,22 +2,15 @@ import gleam/dynamic/decode
 import gleam/io
 import gleam/javascript/promise.{type Promise}
 import gleam/list
-import gleam/order.{type Order, Eq, Gt, Lt}
 import gleam/option.{None, Some}
-import gleam/result
-import gleam/string
 import gflare/d1
 import gflare/error
+import gflare/migrate/parse.{type Migration}
 import gflare/turso
 import gflare/turso/error.{type TursoError} as turso_error
 import gflare/turso/types as turso_types
-import simplifile
 
 const tracking_table = "_gflare_migrations"
-
-pub type Migration {
-  Migration(version: Int, name: String, path: String, sql: String)
-}
 
 pub fn run_turso(
   config: turso.Config,
@@ -28,7 +21,7 @@ pub fn run_turso(
   case applied {
     Error(e) -> promise.resolve(Error(e))
     Ok(applied) -> {
-      case list_pending(migrations_dir, applied) {
+      case parse.list_pending(migrations_dir, applied) {
         Error(e) -> promise.resolve(Error(e))
         Ok(pending) -> execute_pending_turso(config, pending)
       }
@@ -45,7 +38,7 @@ pub fn run_d1(
   case applied {
     Error(e) -> promise.resolve(Error(e))
     Ok(applied) -> {
-      case list_pending(migrations_dir, applied) {
+      case parse.list_pending(migrations_dir, applied) {
         Error(e) -> promise.resolve(Error(e))
         Ok(pending) -> execute_pending_d1(db, pending)
       }
@@ -124,35 +117,6 @@ fn list_applied_d1(
   }
 }
 
-fn list_pending(
-  migrations_dir: String,
-  applied: List(String),
-) -> Result(List(Migration), String) {
-  use files <- result.try(
-    simplifile.get_files(migrations_dir)
-    |> result.map_error(fn(_) { "Failed to read migrations directory" }),
-  )
-
-  let migrations =
-    files
-    |> list.filter(fn(f) { string.ends_with(f, ".sql") })
-    |> list.filter_map(fn(f) {
-      case parse_migration_file(f) {
-        Ok(migration) -> {
-          let is_applied = list.any(applied, fn(a) { a == migration.name })
-          case is_applied {
-            True -> Error(Nil)
-            False -> Ok(migration)
-          }
-        }
-        Error(_) -> Error(Nil)
-      }
-    })
-    |> list.sort(fn(a, b) { int_compare(a.version, b.version) })
-
-  Ok(migrations)
-}
-
 fn execute_pending_turso(
   config: turso.Config,
   pending: List(Migration),
@@ -163,7 +127,7 @@ fn execute_pending_turso(
       promise.resolve(Ok(Nil))
     }
     _ -> {
-      io.println("Applying " <> int_to_string(list.length(pending)) <> " migration(s)...")
+      io.println("Applying " <> parse.int_to_string(list.length(pending)) <> " migration(s)...")
       execute_migrations_turso(config, pending)
     }
   }
@@ -217,7 +181,7 @@ fn execute_pending_d1(
       promise.resolve(Ok(Nil))
     }
     _ -> {
-      io.println("Applying " <> int_to_string(list.length(pending)) <> " migration(s)...")
+      io.println("Applying " <> parse.int_to_string(list.length(pending)) <> " migration(s)...")
       execute_migrations_d1(db, pending)
     }
   }
@@ -259,101 +223,5 @@ fn record_migration_d1(
       promise.resolve(
         Error("Failed to record migration " <> name <> ": " <> error.to_string(e)),
       )
-  }
-}
-
-fn parse_migration_file(path: String) -> Result(Migration, String) {
-  let filename = path |> string.split("/") |> list.last |> result.unwrap("")
-  let name = filename |> string.replace(".sql", "")
-
-  case parse_version_from_name(name) {
-    Ok(version) -> {
-      use content <- result.try(
-        simplifile.read(path)
-        |> result.map_error(fn(_) { "Failed to read " <> path }),
-      )
-
-      let sql =
-        content
-        |> string.split("\n")
-        |> list.filter(fn(line) {
-          let trimmed = string.trim(line)
-          trimmed != "" && !string.starts_with(trimmed, "--")
-        })
-        |> string.join("\n")
-
-      case sql {
-        "" -> Error("Empty SQL in " <> path)
-        _ -> Ok(Migration(version:, name:, path:, sql:))
-      }
-    }
-    Error(_) -> Error("Invalid migration filename: " <> filename)
-  }
-}
-
-fn parse_version_from_name(name: String) -> Result(Int, Nil) {
-  case string.split(name, "_") {
-    [version_str, ..] -> parse_version(version_str)
-    _ -> Error(Nil)
-  }
-}
-
-fn parse_version(s: String) -> Result(Int, Nil) {
-  let digits = string.to_graphemes(s)
-  list.try_fold(digits, 0, fn(acc, c) {
-    case c {
-      "0" -> Ok(acc * 10)
-      "1" -> Ok(acc * 10 + 1)
-      "2" -> Ok(acc * 10 + 2)
-      "3" -> Ok(acc * 10 + 3)
-      "4" -> Ok(acc * 10 + 4)
-      "5" -> Ok(acc * 10 + 5)
-      "6" -> Ok(acc * 10 + 6)
-      "7" -> Ok(acc * 10 + 7)
-      "8" -> Ok(acc * 10 + 8)
-      "9" -> Ok(acc * 10 + 9)
-      _ -> Error(Nil)
-    }
-  })
-}
-
-fn int_compare(a: Int, b: Int) -> Order {
-  case a < b {
-    True -> Lt
-    False ->
-      case a > b {
-        True -> Gt
-        False -> Eq
-      }
-  }
-}
-
-fn int_to_string(n: Int) -> String {
-  case n {
-    0 -> "0"
-    _ -> {
-      let digit = n % 10
-      let rest = n / 10
-      case rest {
-        0 -> digit_char(digit)
-        _ -> int_to_string(rest) <> digit_char(digit)
-      }
-    }
-  }
-}
-
-fn digit_char(d: Int) -> String {
-  case d {
-    0 -> "0"
-    1 -> "1"
-    2 -> "2"
-    3 -> "3"
-    4 -> "4"
-    5 -> "5"
-    6 -> "6"
-    7 -> "7"
-    8 -> "8"
-    9 -> "9"
-    _ -> "0"
   }
 }
