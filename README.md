@@ -69,6 +69,9 @@ gleam run -m gflare -- deploy # Deploy to Cloudflare
 | [Migrations](docs/migrations.md) | Database migrations |
 | [Error Handling](docs/error-handling.md) | Error patterns |
 | [Router](docs/router.md) | Routing and middleware |
+| [CORS](docs/cors.md) | Cross-Origin Resource Sharing |
+| [Rate Limiting](docs/rate-limiting.md) | Request rate limiting |
+| [Validation](docs/validation.md) | Request validation |
 | [Logging](docs/logging.md) | Structured logging |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues |
 
