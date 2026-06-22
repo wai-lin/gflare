@@ -1,5 +1,9 @@
 # gflare
 
+<p align="center">
+  <img src="images/gflare.svg" alt="gflare logo" width="200">
+</p>
+
 Zero-glue Gleam framework for Cloudflare Workers. Write Gleam, deploy to Cloudflare — no `index.js`, no `wrangler.toml` editing, no JavaScript.
 
 [![Package Version](https://img.shields.io/hexpm/v/gflare)](https://hex.pm/packages/gflare)
