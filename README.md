@@ -395,15 +395,38 @@ pub fn find_user(config: turso.Config, user_id: Int) -> promise.Promise(Result(F
 
 **Supported Types:**
 
-| SQL Annotation | Gleam Type |
-|----------------|------------|
-| `Int` | `Int` |
-| `Float` | `Float` |
-| `String` | `String` |
-| `Bool` | `Bool` |
-| `BitArray` | `BitArray` |
-| `Option(Int)` | `Option(Int)` |
-| `Option(String)` | `Option(String)` |
+| SQL Annotation | Gleam Type | Description |
+|----------------|------------|-------------|
+| `Int` | `Int` | Integer |
+| `Float` | `Float` | Floating point |
+| `String` | `String` | Text |
+| `Bool` | `Bool` | Boolean (0/1) |
+| `BitArray` | `BitArray` | Binary data |
+| `Date` | `String` | ISO 8601 date (YYYY-MM-DD) |
+| `Time` | `String` | ISO 8601 time (HH:MM:SS) |
+| `Timestamp` | `String` | ISO 8601 datetime |
+| `Uuid` | `String` | UUID string |
+| `Json` | `String` | JSON text |
+| `Option(T)` | `Option(T)` | Nullable type |
+
+**STRICT Table Types (Turso):**
+
+Turso STRICT tables support additional types. Use the SQL type name in your annotations:
+
+```sql
+-- src/my_app/sql/find_event.sql
+-- params: event_id: Uuid
+-- returns: id: Uuid, name: String, event_date: Date, metadata: Json
+SELECT id, name, event_date, metadata FROM events WHERE id = ?1
+```
+
+```gleam
+// Generated functions use typed constructors:
+turso.execute(config, sql, [turso.uuid(event_id)])
+turso.date("2025-03-15")
+turso.timestamp("2025-03-15T10:30:00Z")
+turso.json_string("{\"key\": \"value\"}")
+```
 
 **Migrations:**
 

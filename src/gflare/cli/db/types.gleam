@@ -5,6 +5,11 @@ pub type GleamType {
   GBool
   GBitArray
   GOption(GleamType)
+  GDate
+  GTime
+  GTimestamp
+  GUuid
+  GJson
 }
 
 pub type QueryParam {
@@ -46,6 +51,11 @@ pub fn gleam_type_to_string(t: GleamType) -> String {
     GBool -> "Bool"
     GBitArray -> "BitArray"
     GOption(inner) -> "Option(" <> gleam_type_to_string(inner) <> ")"
+    GDate -> "String"
+    GTime -> "String"
+    GTimestamp -> "String"
+    GUuid -> "String"
+    GJson -> "String"
   }
 }
 
@@ -61,6 +71,16 @@ pub fn parse_gleam_type(s: String) -> GleamType {
     "Option(String)" -> GOption(GString)
     "Option(Bool)" -> GOption(GBool)
     "Option(BitArray)" -> GOption(GBitArray)
+    "Date" -> GDate
+    "Time" -> GTime
+    "Timestamp" -> GTimestamp
+    "Uuid" -> GUuid
+    "Json" -> GJson
+    "Option(Date)" -> GOption(GDate)
+    "Option(Time)" -> GOption(GTime)
+    "Option(Timestamp)" -> GOption(GTimestamp)
+    "Option(Uuid)" -> GOption(GUuid)
+    "Option(Json)" -> GOption(GJson)
     _ -> GString
   }
 }
@@ -73,6 +93,11 @@ pub fn gleam_type_to_decoder(t: GleamType) -> String {
     GBool -> "decode.bool"
     GBitArray -> "decode.bit_array"
     GOption(inner) -> "decode.optional(" <> gleam_type_to_decoder(inner) <> ")"
+    GDate -> "decode.string"
+    GTime -> "decode.string"
+    GTimestamp -> "decode.string"
+    GUuid -> "decode.string"
+    GJson -> "decode.string"
   }
 }
 
@@ -84,6 +109,11 @@ pub fn gleam_type_to_d1_bind(t: GleamType) -> String {
     GBool -> "d1.int"
     GBitArray -> "d1.blob"
     GOption(_) -> "d1.null_value"
+    GDate -> "d1.text"
+    GTime -> "d1.text"
+    GTimestamp -> "d1.text"
+    GUuid -> "d1.text"
+    GJson -> "d1.text"
   }
 }
 
@@ -95,5 +125,10 @@ pub fn gleam_type_to_turso_value(t: GleamType) -> String {
     GBool -> "turso.int"
     GBitArray -> "turso.blob"
     GOption(_) -> "turso.null_value"
+    GDate -> "turso.date"
+    GTime -> "turso.time"
+    GTimestamp -> "turso.timestamp"
+    GUuid -> "turso.uuid"
+    GJson -> "turso.json_string"
   }
 }

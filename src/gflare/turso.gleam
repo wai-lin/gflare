@@ -9,7 +9,7 @@ import gleam/option.{None, Some}
 import gleam/result
 import gflare/turso/config
 import gflare/turso/error.{type TursoError, DecodeError, NetworkError}
-import gflare/turso/types.{type ExecuteResult, type Value, Blob, Float, Integer, Null, Text}
+import gflare/turso/types.{type ExecuteResult, type Value, Blob, Date, Float, Integer, JsonString, Null, Text, Time, Timestamp, Uuid}
 
 pub type Config =
   config.Config
@@ -23,6 +23,11 @@ pub fn int(value: Int) -> Value { Integer(value) }
 pub fn float(value: Float) -> Value { Float(value) }
 pub fn blob(value: BitArray) -> Value { Blob(value) }
 pub fn null_value() -> Value { Null }
+pub fn date(value: String) -> Value { Date(value) }
+pub fn time(value: String) -> Value { Time(value) }
+pub fn timestamp(value: String) -> Value { Timestamp(value) }
+pub fn uuid(value: String) -> Value { Uuid(value) }
+pub fn json_string(value: String) -> Value { JsonString(value) }
 
 pub fn execute(
   config: Config,
@@ -90,6 +95,11 @@ fn encode_value(value: Value) -> json.Json {
     Float(f) -> json.object([#("type", json.string("float")), #("value", json.float(f))])
     Blob(_) -> json.object([#("type", json.string("blob")), #("base64", json.string(""))])
     Null -> json.object([#("type", json.string("null"))])
+    Date(s) -> json.object([#("type", json.string("text")), #("value", json.string(s))])
+    Time(s) -> json.object([#("type", json.string("text")), #("value", json.string(s))])
+    Timestamp(s) -> json.object([#("type", json.string("text")), #("value", json.string(s))])
+    Uuid(s) -> json.object([#("type", json.string("text")), #("value", json.string(s))])
+    JsonString(s) -> json.object([#("type", json.string("text")), #("value", json.string(s))])
   }
 }
 

@@ -6,6 +6,11 @@ pub type Value {
   Float(Float)
   Blob(BitArray)
   Null
+  Date(String)
+  Time(String)
+  Timestamp(String)
+  Uuid(String)
+  JsonString(String)
 }
 
 pub type Row {
