@@ -428,6 +428,52 @@ db/migrations/
   0003_create_posts.sql
 ```
 
+**Programmatic Migrations:**
+
+Apply migrations from your Gleam code:
+
+```gleam
+import gflare/migrate
+
+// For Turso
+use result <- promise.await(migrate.run_turso(config, "db/migrations"))
+
+// For D1
+use result <- promise.await(migrate.run_d1(db, "db/migrations"))
+```
+
+**Multi-tenant Example:**
+
+Create new tenant databases and apply migrations automatically:
+
+```gleam
+import gflare/migrate
+import gflare/turso
+import gflare/turso/cloud
+
+pub fn create_tenant(api: cloud.CloudConfig, tenant_id: String) {
+  // Create database
+  use result <- promise.await(cloud.create_database(api, tenant_id, "default"))
+  case result {
+    Ok(db) -> {
+      // Generate auth token
+      use token_result <- promise.await(cloud.create_token(api, tenant_id, "10y", "full-access"))
+      case token_result {
+        Ok(token) -> {
+          // Connect and apply migrations
+          let config = turso.connect("lib://" <> db.hostname, token.jwt)
+          migrate.run_turso(config, "db/migrations")
+        }
+        Error(e) -> promise.resolve(Error(e))
+      }
+    }
+    Error(e) -> promise.resolve(Error(e))
+  }
+}
+```
+
+The tracking table `_gflare_migrations` is created automatically.
+
 ### R2 (Object Storage)
 
 ```gleam
