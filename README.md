@@ -68,6 +68,8 @@ gleam run -m gflare -- deploy # Deploy to Cloudflare
 | [Code Generation](docs/code-generation.md) | SQL to Gleam code |
 | [Migrations](docs/migrations.md) | Database migrations |
 | [Error Handling](docs/error-handling.md) | Error patterns |
+| [Router](docs/router.md) | Routing and middleware |
+| [Logging](docs/logging.md) | Structured logging |
 | [Troubleshooting](docs/troubleshooting.md) | Common issues |
 
 ## CLI Commands
