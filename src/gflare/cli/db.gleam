@@ -10,7 +10,6 @@ import gleam/int
 import gleam/io
 import gleam/list
 import gleam/option.{None, Some}
-import gleam/order.{type Order, Eq, Gt, Lt}
 import gleam/string
 import simplifile
 
