@@ -7,15 +7,17 @@ gflare provides structured logging with dependency injection (DI) support. Use t
 ```gleam
 import gflare/log
 import gflare/middleware
+import gflare/router
 
-pub fn fetch(request, env, ctx) {
-  let logger = log.console_logger(Info, Production)
-  let config = middleware.default_config()
-  
-  middleware.with_logging(logger, config, request, env, ctx, fn(req, env, ctx) {
-    handle_request(req, env, ctx)
-  })
-}
+// Create logging middleware
+let logger = log.console_logger(Info, Production)
+let config = middleware.default_config()
+let logging = middleware.with_logging(logger, config)
+
+// Add to router
+let routes = router.new()
+|> router.with_middleware(logging)
+|> router.get("/users", list_users)
 ```
 
 ## Logger
@@ -184,15 +186,18 @@ let config = middleware.MiddlewareConfig(
 ```gleam
 import gflare/log
 import gflare/middleware
+import gflare/router
 
 pub fn fetch(request, env, ctx) {
   let logger = log.console_logger(Info, Production)
   let config = middleware.default_config()
-  
-  middleware.with_logging(logger, config, request, env, ctx, fn(req, env, ctx) {
-    // Your handler code
-    handle_request(req, env, ctx)
-  })
+  let logging = middleware.with_logging(logger, config)
+
+  let routes = router.new()
+  |> router.with_middleware(logging)
+  |> router.get("/users", list_users)
+
+  router.serve(routes, request, env, ctx)
 }
 ```
 

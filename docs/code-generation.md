@@ -129,11 +129,12 @@ pub fn find_user(
 ```gleam
 // AUTO-GENERATED - Turso SQL functions
 // Do not edit manually
-import gleam/dynamic/decode
-import gleam/javascript/promise
+import gleam/list
 import gleam/option.{type Option, None, Some}
+import gleam/result
 import gflare/turso
 import gflare/turso/error.{type TursoError}
+import gflare/turso/types.{type Value}
 
 pub type FindUserRow {
   FindUserRow(id: Int, name: String, email: Option(String))
@@ -143,11 +144,21 @@ pub fn find_user(
   config: turso.Config,
   user_id: Int,
 ) -> promise.Promise(Result(FindUserRow, TursoError)) {
-  turso.execute(
+  use result <- promise.await(turso.execute(
     config,
     "SELECT id, name, email FROM users WHERE id = ?1",
     [turso.int(user_id)],
-  )
+  ))
+  case result {
+    Ok(execute_result) -> {
+      use row <- result.try(execute_result.rows |> list.first |> result.replace_error(error.DecodeError("No row found")))
+      id <- extract_turso_value(row.values, 0, fn(v) { case v { turso.types.Integer(i) -> i, _ -> 0 } })
+      name <- extract_turso_value(row.values, 1, fn(v) { case v { turso.types.Text(s) -> s, _ -> "" } })
+      email <- extract_turso_value(row.values, 2, fn(v) { case v { turso.types.Null -> None, turso.types.Text(s) -> Some(s), _ -> None } })
+      promise.resolve(Ok(FindUserRow(id:, name:, email:)))
+    }
+    Error(e) -> promise.resolve(Error(e))
+  }
 }
 ```
 
