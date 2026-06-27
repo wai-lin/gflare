@@ -27,10 +27,7 @@ pub fn default_config() -> MiddlewareConfig {
   )
 }
 
-pub fn with_logging(
-  logger: Logger,
-  config: MiddlewareConfig,
-) -> Middleware {
+pub fn with_logging(logger: Logger, config: MiddlewareConfig) -> Middleware {
   router.Middleware(fn(req, env, ctx, next) {
     let request_id = log.generate_request_id()
     let path = get_path(request.url(req))
@@ -62,14 +59,7 @@ pub fn with_logging(
         let duration_ms = end_time -. start_time
 
         // Log request end
-        log_request_end(
-          logger,
-          req,
-          response,
-          request_id,
-          duration_ms,
-          config,
-        )
+        log_request_end(logger, req, response, request_id, duration_ms, config)
 
         promise.resolve(response)
       }

@@ -76,12 +76,30 @@ fn parse_sql_content(
     })
     |> list.flatten
 
+  let returns_many = {
+    list.any(lines, fn(line) {
+      string.trim(line) |> string.starts_with("-- returns-many:")
+    })
+  }
+
   let returns =
     list.filter_map(lines, fn(line) {
       let trimmed = string.trim(line)
-      case string.starts_with(trimmed, "-- returns:") {
+      case
+        string.starts_with(trimmed, "-- returns-many:")
+        || string.starts_with(trimmed, "-- returns:")
+      {
         True -> {
-          let return_str = string.drop_start(trimmed, 11) |> string.trim
+          let return_str =
+            trimmed
+            |> string.drop_start(1)
+            |> string.trim
+            |> fn(s) {
+              case string.split(s, ":") {
+                [_, ..rest] -> string.join(rest, ":") |> string.trim
+                _ -> s
+              }
+            }
           Ok(parse_return_line(return_str))
         }
         False -> Error(Nil)
@@ -126,7 +144,15 @@ fn parse_sql_content(
 
   case sql {
     "" -> Error(ParseError(path: "", message: "No SQL query found"))
-    _ -> Ok(ParsedQuery(name: "", params:, returns:, sql:, backends:))
+    _ ->
+      Ok(ParsedQuery(
+        name: "",
+        params:,
+        returns:,
+        sql:,
+        backends:,
+        returns_many:,
+      ))
   }
 }
 

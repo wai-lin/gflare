@@ -120,8 +120,7 @@ fn post_request(
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
   case request.to(url) {
-    Error(_) ->
-      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Error(_) -> promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
     Ok(req) -> {
       let req =
         req
@@ -152,8 +151,7 @@ fn get_request(
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
   case request.to(url) {
-    Error(_) ->
-      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Error(_) -> promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
     Ok(req) -> {
       let req =
         req |> request.set_header("Authorization", "Bearer " <> config.token)
@@ -180,8 +178,7 @@ fn delete_request(
   url: String,
 ) -> Promise(Result(Nil, TursoError)) {
   case request.to(url) {
-    Error(_) ->
-      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Error(_) -> promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
     Ok(req) -> {
       let req =
         req |> request.set_header("Authorization", "Bearer " <> config.token)

@@ -49,6 +49,6 @@ fn deploy_command() {
 
 fn db_command() {
   use <- glint.command_help("Database tools (generate, migrate)")
-  use _, _, _ <- glint.command()
-  db.run()
+  use _, args, _ <- glint.command()
+  db.run(args)
 }

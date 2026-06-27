@@ -187,10 +187,7 @@ pub fn list(
 @external(javascript, "../gflare_ffi_r2.mjs", "r2_head")
 fn do_head(bucket: Bucket, key: String) -> Promise(Result(Dynamic, String))
 
-pub fn head(
-  bucket: Bucket,
-  key: String,
-) -> Promise(Result(ListObject, Error)) {
+pub fn head(bucket: Bucket, key: String) -> Promise(Result(ListObject, Error)) {
   use result <- promise.await(do_head(bucket, key))
   case result {
     Ok(data) -> {

@@ -98,8 +98,7 @@ fn make_request(
   parser: fn(String) -> Result(a, String),
 ) -> Promise(Result(a, TursoError)) {
   case request.to(url) {
-    Error(_) ->
-      promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
+    Error(_) -> promise.resolve(Error(NetworkError("Invalid URL: " <> url)))
     Ok(req) -> {
       let req =
         req

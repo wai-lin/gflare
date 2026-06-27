@@ -1,4 +1,3 @@
-import argv
 import gflare/cli/db/generate
 import gflare/cli/db/parse_sql
 import gflare/cli/db/types.{Both, D1, Turso}
@@ -13,8 +12,7 @@ import gleam/option.{None, Some}
 import gleam/string
 import simplifile
 
-pub fn run() -> Nil {
-  let args = argv.load().arguments
+pub fn run(args: List(String)) -> Nil {
   case args {
     ["generate", ..rest] -> run_generate(rest)
     ["migrate", ..rest] -> run_migrate(rest)

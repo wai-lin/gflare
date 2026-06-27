@@ -138,9 +138,7 @@ fn execute_pending_turso(
     }
     _ -> {
       io.println(
-        "Applying "
-        <> int.to_string(list.length(pending))
-        <> " migration(s)...",
+        "Applying " <> int.to_string(list.length(pending)) <> " migration(s)...",
       )
       execute_migrations_turso(config, pending)
     }
@@ -199,9 +197,7 @@ fn execute_pending_d1(
     }
     _ -> {
       io.println(
-        "Applying "
-        <> int.to_string(list.length(pending))
-        <> " migration(s)...",
+        "Applying " <> int.to_string(list.length(pending)) <> " migration(s)...",
       )
       execute_migrations_d1(db, pending)
     }

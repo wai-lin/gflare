@@ -234,6 +234,7 @@ pub fn generate_d1_module_test() {
       ],
       sql: "SELECT id, name FROM users WHERE id = ?1",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   case generate.generate_sql_module(queries, D1, "/tmp/test_sql.gleam") {
@@ -256,6 +257,7 @@ pub fn generate_turso_module_test() {
       ],
       sql: "SELECT id, name FROM users WHERE id = ?1",
       backends: [Turso],
+      returns_many: False,
     ),
   ]
   case
@@ -315,6 +317,54 @@ pub fn parse_backend_default_test() {
   case parse_sql.parse_file_content(sql, [D1]) {
     Ok(query) -> {
       query.backends |> should.equal([D1])
+    }
+    Error(e) -> {
+      io.println(e.message)
+      should.fail()
+    }
+  }
+}
+
+// returns-many annotation tests
+
+pub fn parse_returns_many_test() {
+  let sql =
+    "-- returns-many: id: Int, name: String\nSELECT id, name FROM users ORDER BY name"
+  case parse_sql.parse_file_content(sql, [D1]) {
+    Ok(query) -> {
+      query.returns_many |> should.be_true()
+      list.length(query.returns) |> should.equal(2)
+    }
+    Error(e) -> {
+      io.println(e.message)
+      should.fail()
+    }
+  }
+}
+
+pub fn parse_returns_single_test() {
+  let sql =
+    "-- returns: id: Int, name: String\nSELECT id, name FROM users WHERE id = ?1"
+  case parse_sql.parse_file_content(sql, [D1]) {
+    Ok(query) -> {
+      query.returns_many |> should.be_false()
+      list.length(query.returns) |> should.equal(2)
+    }
+    Error(e) -> {
+      io.println(e.message)
+      should.fail()
+    }
+  }
+}
+
+pub fn parse_returns_many_with_params_test() {
+  let sql =
+    "-- params: user_id: Int\n-- returns-many: id: Int, title: String\nSELECT id, title FROM posts WHERE user_id = ?1"
+  case parse_sql.parse_file_content(sql, [D1]) {
+    Ok(query) -> {
+      query.returns_many |> should.be_true()
+      list.length(query.params) |> should.equal(1)
+      list.length(query.returns) |> should.equal(2)
     }
     Error(e) -> {
       io.println(e.message)

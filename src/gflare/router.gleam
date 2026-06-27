@@ -170,7 +170,8 @@ pub fn serve(
   case match_route(router.tree, segments, method, []) {
     Ok(#(handler, params, route_middleware)) -> {
       // Execute middleware chain: global first, then route-specific
-      let all_middleware = list.append(router.global_middleware, route_middleware)
+      let all_middleware =
+        list.append(router.global_middleware, route_middleware)
       execute_middleware_chain(
         all_middleware,
         request,
@@ -350,13 +351,15 @@ fn match_route(
                 Error(RouteNotFound) -> {
                   // Try wildcard match
                   case node.wildcard_child {
-                Some(wildcard) -> {
+                    Some(wildcard) -> {
                       let remaining = join_segments(segments)
-                      Ok(
-                        #(wildcard.handler, [
+                      Ok(#(
+                        wildcard.handler,
+                        [
                           #(wildcard.name, remaining),
-                        ], all_middleware),
-                      )
+                        ],
+                        all_middleware,
+                      ))
                     }
                     None -> Error(RouteNotFound)
                   }
@@ -369,11 +372,13 @@ fn match_route(
               case node.wildcard_child {
                 Some(wildcard) -> {
                   let remaining = join_segments(segments)
-                  Ok(
-                    #(wildcard.handler, [
+                  Ok(#(
+                    wildcard.handler,
+                    [
                       #(wildcard.name, remaining),
-                    ], all_middleware),
-                  )
+                    ],
+                    all_middleware,
+                  ))
                 }
                 None -> Error(RouteNotFound)
               }
@@ -560,7 +565,8 @@ fn insert_tree_at_prefix(
         Ok(existing) -> existing
         Error(_) -> new_node()
       }
-      let updated_child = insert_tree_at_prefix(child, rest, new_tree, middleware)
+      let updated_child =
+        insert_tree_at_prefix(child, rest, new_tree, middleware)
       let children = dict.insert(node.children, segment, updated_child)
       TreeNode(..node, children:)
     }

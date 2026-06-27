@@ -35,9 +35,7 @@ pub fn get(request: HttpRequest, name: String) -> Option(String) {
   }
 }
 
-pub fn parse(
-  request: HttpRequest,
-) -> Result(List(#(String, String)), String) {
+pub fn parse(request: HttpRequest) -> Result(List(#(String, String)), String) {
   let headers = request.headers(request)
   case list.find(headers, fn(h) { h.0 == "cookie" }) {
     Ok(#(_, cookie_header)) -> Ok(parse_cookie_header(cookie_header))

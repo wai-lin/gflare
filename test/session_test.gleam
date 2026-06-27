@@ -29,10 +29,10 @@ pub fn default_config_custom_kv_test() {
 
 pub fn session_data_construction_test() {
   let session =
-    session.SessionData(id: "abc123", data: [#("user_id", "1"), #(
-      "role",
-      "admin",
-    )])
+    session.SessionData(id: "abc123", data: [
+      #("user_id", "1"),
+      #("role", "admin"),
+    ])
   session.id |> should.equal("abc123")
   session.data |> should.equal([#("user_id", "1"), #("role", "admin")])
 }
@@ -57,10 +57,7 @@ pub fn get_value_missing_test() {
 
 pub fn remove_value_test() {
   let s =
-    session.SessionData(id: "abc", data: [#("a", "1"), #("b", "2"), #(
-      "c",
-      "3",
-    )])
+    session.SessionData(id: "abc", data: [#("a", "1"), #("b", "2"), #("c", "3")])
   let s = session.remove_value(s, "b")
   session.get_value(s, "a") |> should.equal(Some("1"))
   session.get_value(s, "b") |> should.equal(None)

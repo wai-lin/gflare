@@ -20,9 +20,7 @@ fn do_parse(request: Dynamic) -> promise.Promise(Result(FormData, String))
 
 // Public API
 
-pub fn parse(
-  request: Dynamic,
-) -> promise.Promise(Result(FormData, String)) {
+pub fn parse(request: Dynamic) -> promise.Promise(Result(FormData, String)) {
   do_parse(request)
 }
 

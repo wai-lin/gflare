@@ -8,8 +8,8 @@ import gflare/response.{type Response}
 import gflare/router
 import gleam/dict as gleam_dict
 import gleam/dynamic/decode
-import gleam/json
 import gleam/javascript/promise
+import gleam/json
 import gleam/list
 import gleam/option.{type Option, None, Some}
 
@@ -34,8 +34,7 @@ pub fn middleware(config: SessionConfig) -> router.Middleware {
     use session_data <- promise.await(load_session(req, env, config))
 
     let session_json = encode_session(session_data)
-    let enriched_req =
-      clone_with_header(req, "x-gflare-session", session_json)
+    let enriched_req = clone_with_header(req, "x-gflare-session", session_json)
 
     let router.Handler(handler_fn) = next
     use resp <- promise.await(handler_fn(
@@ -140,15 +139,11 @@ fn load_session(
                 Error(_) ->
                   promise.resolve(SessionData(id: session_id, data: []))
               }
-            Error(_) ->
-              promise.resolve(SessionData(id: session_id, data: []))
+            Error(_) -> promise.resolve(SessionData(id: session_id, data: []))
           }
         }
         Error(_) ->
-          promise.resolve(SessionData(
-            id: log.generate_request_id(),
-            data: [],
-          ))
+          promise.resolve(SessionData(id: log.generate_request_id(), data: []))
       }
     }
     None ->
@@ -185,13 +180,13 @@ fn save_session(
 
 fn encode_session(session: SessionData) -> String {
   let data_pairs =
-    list.map(session.data, fn(pair) {
-      #(pair.0, json.string(pair.1))
-    })
-  json.to_string(json.object([#("id", json.string(session.id)), #(
-    "data",
-    json.object(data_pairs),
-  )]))
+    list.map(session.data, fn(pair) { #(pair.0, json.string(pair.1)) })
+  json.to_string(
+    json.object([
+      #("id", json.string(session.id)),
+      #("data", json.object(data_pairs)),
+    ]),
+  )
 }
 
 fn decode_session_json(json_str: String) -> Result(SessionData, String) {
@@ -202,7 +197,11 @@ fn decode_session_json(json_str: String) -> Result(SessionData, String) {
           let session_data = case
             decode.run(
               data,
-              decode.field("data", decode.dict(decode.string, decode.string), decode.success)
+              decode.field(
+                "data",
+                decode.dict(decode.string, decode.string),
+                decode.success,
+              ),
             )
           {
             Ok(dict) -> gleam_dict.to_list(dict)
@@ -230,10 +229,7 @@ fn get_request_header(
   }
 }
 
-fn remove_response_header(
-  response: Response,
-  name: String,
-) -> Response {
+fn remove_response_header(response: Response, name: String) -> Response {
   do_remove_response_header(response, name)
 }
 

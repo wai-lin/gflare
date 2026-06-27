@@ -25,6 +25,24 @@ SELECT id, name, email FROM users WHERE id = ?1
 INSERT INTO users (name, email) VALUES (?1, ?2)
 ```
 
+### Single vs Multiple Rows
+
+Use `-- returns:` for queries that return a single row (uses `d1.first()`):
+
+```sql
+-- returns: id: Int, name: String
+SELECT id, name FROM users WHERE id = ?1
+```
+
+Use `-- returns-many:` for queries that return multiple rows (uses `d1.all()`):
+
+```sql
+-- returns-many: id: Int, name: String
+SELECT id, name FROM users ORDER BY name
+```
+
+Queries with no `-- returns:` or `-- returns-many:` annotation use `d1.run()` and return the raw result.
+
 ### Backend Selection
 
 You can specify which backend to generate for each SQL file using the `-- backend:` comment:
@@ -86,7 +104,7 @@ src/gen/
 
 ## Generated Code Examples
 
-### D1 (src/gen/d1_sql.gleam)
+### D1 — Single Row (src/gen/d1_sql.gleam)
 
 ```gleam
 // AUTO-GENERATED - D1 SQL functions
@@ -124,7 +142,42 @@ pub fn find_user(
 }
 ```
 
-### Turso (src/gen/turso_sql.gleam)
+### D1 — Multiple Rows (src/gen/d1_sql.gleam)
+
+```gleam
+pub type ListUsersRow {
+  ListUsersRow(id: Int, name: String)
+}
+
+pub fn list_users(
+  db: d1.Database,
+) -> promise.Promise(Result(List(ListUsersRow), Error)) {
+  let decoder = {
+    use id <- decode.field(0, decode.int)
+    use name <- decode.field(1, decode.string)
+    decode.success(ListUsersRow(id:, name:))
+  }
+  use result <- promise.await(
+    d1.prepare(db, "SELECT id, name FROM users ORDER BY name")
+    |> d1.bind([])
+    |> d1.all(),
+  )
+  case result {
+    Ok(d1_result) -> {
+      let decoded = list.filter_map(d1_result.results, fn(row) {
+        case decode.run(row, decoder) {
+          Ok(row) -> Ok(row)
+          Error(_) -> Error(Nil)
+        }
+      })
+      promise.resolve(Ok(decoded))
+    }
+    Error(e) -> promise.resolve(Error(e))
+  }
+}
+```
+
+### Turso — Single Row (src/gen/turso_sql.gleam)
 
 ```gleam
 // AUTO-GENERATED - Turso SQL functions
@@ -162,6 +215,35 @@ pub fn find_user(
 }
 ```
 
+### Turso — Multiple Rows (src/gen/turso_sql.gleam)
+
+```gleam
+pub type ListUsersRow {
+  ListUsersRow(id: Int, name: String)
+}
+
+pub fn list_users(
+  config: turso.Config,
+) -> promise.Promise(Result(List(ListUsersRow), TursoError)) {
+  use result <- promise.await(turso.execute(
+    config,
+    "SELECT id, name FROM users ORDER BY name",
+    [],
+  ))
+  case result {
+    Ok(execute_result) -> {
+      let decoded = list.filter_map(execute_result.rows, fn(row) {
+        use id <- extract_turso_value(row.values, 0, fn(v) { case v { turso.types.Integer(i) -> i, _ -> 0 } })
+        use name <- extract_turso_value(row.values, 1, fn(v) { case v { turso.types.Text(s) -> s, _ -> "" } })
+        Ok(ListUsersRow(id:, name:))
+      })
+      promise.resolve(Ok(decoded))
+    }
+    Error(e) -> promise.resolve(Error(e))
+  }
+}
+```
+
 ### Shared Types (src/gen/sql_shared.gleam)
 
 ```gleam
@@ -192,7 +274,7 @@ pub type FindUserRow {
 
 ## Using Generated Functions
 
-### D1
+### D1 — Single Row
 
 ```gleam
 import my_app/gen/d1_sql
@@ -207,6 +289,30 @@ pub fn fetch(request, env, ctx) {
         Ok(user) -> {
           io.println("Found: " <> user.name)
           respond_with_user(user)
+        }
+        Error(e) -> handle_error(e)
+      }
+    }
+  }
+}
+```
+
+### D1 — Multiple Rows
+
+```gleam
+import my_app/gen/d1_sql
+import gleam/io
+import gleam/list
+
+pub fn fetch(request, env, ctx) {
+  case bindings.d1(env, "DB") {
+    Error(e) -> handle_error(e)
+    Ok(db) -> {
+      use result <- promise.await(d1_sql.list_users(db))
+      case result {
+        Ok(users) -> {
+          io.println("Found " <> int.to_string(list.length(users)) <> " users")
+          respond_with_users(users)
         }
         Error(e) -> handle_error(e)
       }

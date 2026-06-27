@@ -25,10 +25,10 @@ fn build_entrypoint_js(
 ) -> String {
   let imports = [
     "import * as handler from \"../dev/javascript/"
-    <> package_name
-    <> "/"
-    <> package_name
-    <> ".mjs\";",
+      <> package_name
+      <> "/"
+      <> package_name
+      <> ".mjs\";",
     ..list.map(do_classes, fn(cls) {
       "import { "
       <> cls.name
@@ -58,11 +58,16 @@ fn build_entrypoint_js(
             <> "}",
           )
         "alarm" -> Error(Nil)
-        _ -> Ok(
-          "export async function " <> h <> "(...args) {\n"
-          <> "  return handler." <> h <> "(...args);\n"
-          <> "}",
-        )
+        _ ->
+          Ok(
+            "export async function "
+            <> h
+            <> "(...args) {\n"
+            <> "  return handler."
+            <> h
+            <> "(...args);\n"
+            <> "}",
+          )
       }
     })
 

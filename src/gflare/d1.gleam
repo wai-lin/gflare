@@ -133,10 +133,7 @@ pub fn all(statement: PreparedStatement) -> Promise(Result(D1Result, Error)) {
 @external(javascript, "../gflare_ffi_d1.mjs", "d1_exec")
 fn do_exec(db: Database, query: String) -> Promise(Result(Dynamic, String))
 
-pub fn exec(
-  db: Database,
-  query: String,
-) -> Promise(Result(D1Result, Error)) {
+pub fn exec(db: Database, query: String) -> Promise(Result(D1Result, Error)) {
   use result <- promise.await(do_exec(db, query))
   case result {
     Ok(data) -> {

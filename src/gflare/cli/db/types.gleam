@@ -27,6 +27,7 @@ pub type ParsedQuery {
     returns: List(ResultSet),
     sql: String,
     backends: List(DbBackend),
+    returns_many: Bool,
   )
 }
 
@@ -144,10 +145,15 @@ pub fn gleam_type_to_turso_extractor(t: GleamType) -> String {
       <> inner_extractor
       <> "(v)) } }"
     }
-    GDate -> "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Date(s) -> s, _ -> \"\" } }"
-    GTime -> "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Time(s) -> s, _ -> \"\" } }"
-    GTimestamp -> "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Timestamp(s) -> s, _ -> \"\" } }"
-    GUuid -> "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Uuid(s) -> s, _ -> \"\" } }"
-    GJson -> "fn(v) { case v { turso.types.Text(s) -> s, turso.types.JsonString(s) -> s, _ -> \"\" } }"
+    GDate ->
+      "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Date(s) -> s, _ -> \"\" } }"
+    GTime ->
+      "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Time(s) -> s, _ -> \"\" } }"
+    GTimestamp ->
+      "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Timestamp(s) -> s, _ -> \"\" } }"
+    GUuid ->
+      "fn(v) { case v { turso.types.Text(s) -> s, turso.types.Uuid(s) -> s, _ -> \"\" } }"
+    GJson ->
+      "fn(v) { case v { turso.types.Text(s) -> s, turso.types.JsonString(s) -> s, _ -> \"\" } }"
   }
 }

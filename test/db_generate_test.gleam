@@ -68,6 +68,7 @@ pub fn generate_d1_select_with_returns_test() {
       ],
       sql: "SELECT id, name FROM users WHERE id = ?1",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_d1_select.gleam")
@@ -92,6 +93,7 @@ pub fn generate_d1_insert_no_returns_test() {
       returns: [],
       sql: "INSERT INTO users (name, email) VALUES (?1, ?2)",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_d1_insert.gleam")
@@ -113,6 +115,7 @@ pub fn generate_d1_with_option_return_test() {
       ],
       sql: "SELECT id, email FROM users WHERE id = ?1",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_d1_option.gleam")
@@ -134,6 +137,7 @@ pub fn generate_turso_select_with_returns_test() {
       ],
       sql: "SELECT id, name, price FROM items WHERE id = ?1",
       backends: [Turso],
+      returns_many: False,
     ),
   ]
   let content =
@@ -159,6 +163,7 @@ pub fn generate_turso_insert_no_returns_test() {
       returns: [],
       sql: "INSERT INTO items (name, price) VALUES (?1, ?2)",
       backends: [Turso],
+      returns_many: False,
     ),
   ]
   let content =
@@ -183,6 +188,7 @@ pub fn generate_multiple_queries_test() {
       ],
       sql: "SELECT id, name FROM users WHERE id = ?1",
       backends: [D1],
+      returns_many: False,
     ),
     ParsedQuery(
       name: "list_users",
@@ -193,6 +199,7 @@ pub fn generate_multiple_queries_test() {
       ],
       sql: "SELECT id, name FROM users",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_multi.gleam")
@@ -212,6 +219,7 @@ pub fn generate_sql_with_quotes_test() {
       returns: [],
       sql: "SELECT * FROM users WHERE name LIKE '%test%'",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_quotes.gleam")
@@ -227,6 +235,7 @@ pub fn generate_sql_with_newlines_test() {
       returns: [],
       sql: "SELECT\n  id,\n  name\nFROM users",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_newlines.gleam")
@@ -243,6 +252,7 @@ pub fn generate_d1_bool_param_test() {
       returns: [],
       sql: "UPDATE users SET active = ?1",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_bool.gleam")
@@ -257,6 +267,7 @@ pub fn generate_d1_blob_param_test() {
       returns: [],
       sql: "INSERT INTO files (data) VALUES (?1)",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_blob.gleam")
@@ -271,6 +282,7 @@ pub fn generate_turso_date_param_test() {
       returns: [],
       sql: "SELECT * FROM events WHERE date = ?1",
       backends: [Turso],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, Turso, "/tmp/test_date.gleam")
@@ -287,6 +299,7 @@ pub fn generate_no_params_test() {
       returns: [ResultSet(name: "count", gleam_type: GInt)],
       sql: "SELECT COUNT(*) as count FROM users",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_no_params.gleam")
@@ -307,6 +320,7 @@ pub fn generate_d1_imports_test() {
       returns: [],
       sql: "SELECT 1",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_imports.gleam")
@@ -325,6 +339,7 @@ pub fn generate_turso_imports_test() {
       returns: [],
       sql: "SELECT 1",
       backends: [Turso],
+      returns_many: False,
     ),
   ]
   let content =
@@ -353,6 +368,7 @@ pub fn generate_decoder_with_multiple_fields_test() {
       ],
       sql: "SELECT * FROM complex_table",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_decoder.gleam")
@@ -372,6 +388,7 @@ pub fn generate_invalid_path_test() {
       returns: [],
       sql: "SELECT 1",
       backends: [D1],
+      returns_many: False,
     ),
   ]
   let result =
@@ -392,6 +409,7 @@ pub fn generate_both_backends_test() {
       ],
       sql: "SELECT id, name FROM users WHERE id = ?1",
       backends: [D1, Turso],
+      returns_many: False,
     ),
   ]
   // Use the multi-file generation for dual backend
@@ -448,4 +466,106 @@ fn verify_dual_backend_output(output_dir: String) {
   let _ = simplifile.delete(turso_path)
   let _ = simplifile.delete(shared_path)
   let _ = simplifile.delete(output_dir)
+}
+
+// returns_many tests
+
+pub fn generate_d1_returns_many_test() {
+  let queries = [
+    ParsedQuery(
+      name: "list_users",
+      params: [],
+      returns: [
+        ResultSet(name: "id", gleam_type: GInt),
+        ResultSet(name: "name", gleam_type: GString),
+      ],
+      sql: "SELECT id, name FROM users ORDER BY name",
+      backends: [D1],
+      returns_many: True,
+    ),
+  ]
+  let content = generate_and_read(queries, D1, "/tmp/test_returns_many.gleam")
+  should_contain(content, "d1.all()")
+  should_not_contain(content, "d1.first()")
+  should_contain(content, "List(ListUsersRow)")
+  should_contain(content, "list.filter_map(d1_result.results")
+}
+
+pub fn generate_d1_returns_many_with_params_test() {
+  let queries = [
+    ParsedQuery(
+      name: "list_user_posts",
+      params: [QueryParam(name: "user_id", gleam_type: GInt)],
+      returns: [
+        ResultSet(name: "id", gleam_type: GInt),
+        ResultSet(name: "title", gleam_type: GString),
+      ],
+      sql: "SELECT id, title FROM posts WHERE user_id = ?1",
+      backends: [D1],
+      returns_many: True,
+    ),
+  ]
+  let content =
+    generate_and_read(queries, D1, "/tmp/test_returns_many_params.gleam")
+  should_contain(content, "d1.all()")
+  should_contain(content, "List(ListUserPostsRow)")
+  should_contain(content, "d1.int(user_id)")
+}
+
+pub fn generate_d1_returns_single_test() {
+  let queries = [
+    ParsedQuery(
+      name: "find_user",
+      params: [QueryParam(name: "id", gleam_type: GInt)],
+      returns: [
+        ResultSet(name: "id", gleam_type: GInt),
+        ResultSet(name: "name", gleam_type: GString),
+      ],
+      sql: "SELECT id, name FROM users WHERE id = ?1",
+      backends: [D1],
+      returns_many: False,
+    ),
+  ]
+  let content = generate_and_read(queries, D1, "/tmp/test_returns_single.gleam")
+  should_contain(content, "d1.first()")
+  should_not_contain(content, "d1.all()")
+  should_contain(content, "FindUserRow")
+  should_not_contain(content, "List(")
+}
+
+pub fn generate_turso_returns_many_test() {
+  let queries = [
+    ParsedQuery(
+      name: "list_items",
+      params: [],
+      returns: [
+        ResultSet(name: "id", gleam_type: GInt),
+        ResultSet(name: "name", gleam_type: GString),
+      ],
+      sql: "SELECT id, name FROM items",
+      backends: [Turso],
+      returns_many: True,
+    ),
+  ]
+  let content =
+    generate_and_read(queries, Turso, "/tmp/test_turso_returns_many.gleam")
+  should_contain(content, "List(ListItemsRow)")
+  should_contain(content, "list.filter_map(execute_result.rows")
+}
+
+pub fn generate_no_returns_many_without_annotation_test() {
+  let queries = [
+    ParsedQuery(
+      name: "count_users",
+      params: [],
+      returns: [ResultSet(name: "count", gleam_type: GInt)],
+      sql: "SELECT COUNT(*) as count FROM users",
+      backends: [D1],
+      returns_many: False,
+    ),
+  ]
+  let content =
+    generate_and_read(queries, D1, "/tmp/test_no_returns_many.gleam")
+  should_contain(content, "d1.first()")
+  should_not_contain(content, "List(CountUsersRow)")
 }
