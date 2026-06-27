@@ -39,54 +39,47 @@ fn build_entrypoint_js(
     })
   ]
 
-  let handler_exports =
+  let handler_methods =
     list.filter_map(handlers, fn(h) {
       case h {
         "queue" ->
           Ok(
-            "export async function queue(batch, env, ctx) {\n"
-            <> "  const messages = batch.messages.map(msg => ({\n"
-            <> "    id: msg.id,\n"
-            <> "    timestamp: msg.timestamp,\n"
-            <> "    body: msg.body,\n"
-            <> "    attempts: msg.attempts,\n"
-            <> "    ack: () => msg.ack(),\n"
-            <> "    retry: () => msg.retry(),\n"
-            <> "  }));\n"
-            <> "  return handler.queue({ messages }, env, ctx);\n"
-            <> "}",
+            "  async queue(batch, env, ctx) {\n"
+            <> "    const messages = batch.messages.map(msg => ({\n"
+            <> "      id: msg.id,\n"
+            <> "      timestamp: msg.timestamp,\n"
+            <> "      body: msg.body,\n"
+            <> "      attempts: msg.attempts,\n"
+            <> "      ack: () => msg.ack(),\n"
+            <> "      retry: () => msg.retry(),\n"
+            <> "    }));\n"
+            <> "    return handler.queue({ messages }, env, ctx);\n"
+            <> "  },",
           )
         "alarm" -> Error(Nil)
         _ ->
           Ok(
-            "export async function "
+            "  async "
             <> h
             <> "(...args) {\n"
-            <> "  return handler."
+            <> "    return handler."
             <> h
             <> "(...args);\n"
-            <> "}",
+            <> "  },",
           )
       }
     })
 
-  let do_export_names = list.map(do_classes, fn(cls) { cls.name })
+  let do_export_lines = list.map(do_classes, fn(cls) { "  " <> cls.name })
 
-  let exports_block = case handler_exports {
-    [] -> ""
-    _ -> string.join(handler_exports, "\n\n")
+  let all_methods = list.append(handler_methods, do_export_lines)
+
+  let default_export = case all_methods {
+    [] -> "export default {};\n"
+    _ -> "export default {\n" <> string.join(all_methods, "\n") <> "\n};\n"
   }
 
-  let do_export_block = case do_export_names {
-    [] -> ""
-    names -> "\nexport { " <> string.join(names, ", ") <> " };"
-  }
-
-  string.join(imports, "\n")
-  <> "\n\n"
-  <> exports_block
-  <> do_export_block
-  <> "\n"
+  string.join(imports, "\n") <> "\n\n" <> default_export
 }
 
 pub fn do_class(
