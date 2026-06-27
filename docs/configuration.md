@@ -21,15 +21,56 @@ compatibility_date = "2025-01-15"     # Cloudflare compatibility date
 
 ## Bindings
 
-Bindings connect your code to Cloudflare services. Add them under `[cloudflare.bindings]`:
+Bindings connect your code to Cloudflare services.
+
+### KV, R2, Queues
+
+Add these under `[cloudflare.bindings]`:
 
 ```toml
 [cloudflare.bindings]
 kv = ["CACHE", "SESSIONS"]           # Key-value namespaces
-d1 = ["DB"]                          # D1 databases
 r2 = ["ASSETS"]                      # R2 buckets
 queues_producers = ["EVENTS"]        # Queue producers
 queues_consumers = ["events"]        # Queue consumers
+```
+
+### D1 Databases
+
+D1 uses per-binding configuration via `[[cloudflare.d1]]`:
+
+```toml
+[[cloudflare.d1]]
+binding = "DB"                        # Binding name (env.DB in your worker)
+database_name = "my-database"         # Database name in Cloudflare
+database_id = "your-uuid-here"       # Database ID from Cloudflare dashboard
+migrations_dir = "./db/migrations"   # Path to migration SQL files
+```
+
+All fields except `binding` are optional. If omitted, gflare uses sensible defaults:
+- `database_name`: `<worker-name>-<binding>` (lowercased)
+- `database_id`: `YOUR_D1_DATABASE_ID` (placeholder)
+- `migrations_dir`: not set
+
+Multiple D1 databases:
+
+```toml
+[[cloudflare.d1]]
+binding = "DB"
+database_name = "main-db"
+database_id = "abc-123"
+
+[[cloudflare.d1]]
+binding = "DB_REPLICA"
+database_name = "replica-db"
+database_id = "xyz-789"
+```
+
+Legacy format still works (no extra fields):
+
+```toml
+[cloudflare.bindings]
+d1 = ["DB"]
 ```
 
 ## Environment Variables
@@ -72,10 +113,15 @@ compatibility_date = "2025-01-15"
 
 [cloudflare.bindings]
 kv = ["CACHE", "SESSIONS"]
-d1 = ["DB"]
 r2 = ["ASSETS"]
 queues_producers = ["EVENTS"]
 queues_consumers = ["events"]
+
+[[cloudflare.d1]]
+binding = "DB"
+database_name = "my-worker-db"
+database_id = "your-uuid-here"
+migrations_dir = "./db/migrations"
 
 [cloudflare.durable_objects]
 classes = [

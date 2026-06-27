@@ -1,6 +1,7 @@
 import gflare/cli/toml_utils.{type Config, type DoClass}
 import gleam/dict
 import gleam/list
+import gleam/option.{None, Some}
 import gleam/result
 import gleam/string
 import simplifile
@@ -128,18 +129,32 @@ fn build_wrangler_toml(
     })
 
   let d1_lines =
-    list.flat_map(cf.bindings.d1, fn(name) {
-      [
+    list.flat_map(cf.bindings.d1, fn(d1) {
+      let base = [
         "[[d1_databases]]",
-        "binding = \"" <> name <> "\"",
-        "database_name = \""
-          <> worker_name
-          <> "-"
-          <> string.lowercase(name)
-          <> "\"",
-        "database_id = \"YOUR_D1_DATABASE_ID\"",
-        "",
+        "binding = \"" <> d1.binding <> "\"",
       ]
+      let with_name = case d1.database_name {
+        Some(name) -> list.append(base, ["database_name = \"" <> name <> "\""])
+        None ->
+          list.append(base, [
+            "database_name = \""
+            <> worker_name
+            <> "-"
+            <> string.lowercase(d1.binding)
+            <> "\"",
+          ])
+      }
+      let with_id = case d1.database_id {
+        Some(id) -> list.append(with_name, ["database_id = \"" <> id <> "\""])
+        None ->
+          list.append(with_name, ["database_id = \"YOUR_D1_DATABASE_ID\""])
+      }
+      case d1.migrations_dir {
+        Some(dir) ->
+          list.append(with_id, ["migrations_dir = \"" <> dir <> "\"", ""])
+        None -> list.append(with_id, [""])
+      }
     })
 
   let r2_lines =

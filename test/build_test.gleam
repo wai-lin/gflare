@@ -5,6 +5,7 @@ import gflare/cli/handlers
 import gflare/cli/toml_utils
 import gleam/int
 import gleam/list
+import gleam/option.{Some}
 import gleam/string
 import simplifile
 
@@ -106,10 +107,15 @@ pub fn parse_realistic_gleam_toml_test() {
     <> "\n"
     <> "[cloudflare.bindings]\n"
     <> "kv = [\"CACHE\", \"SESSIONS\"]\n"
-    <> "d1 = [\"DB\"]\n"
     <> "r2 = [\"ASSETS\"]\n"
     <> "queues_producers = [\"EVENTS\"]\n"
     <> "queues_consumers = [\"events\"]\n"
+    <> "\n"
+    <> "[[cloudflare.d1]]\n"
+    <> "binding = \"DB\"\n"
+    <> "database_name = \"my-db\"\n"
+    <> "database_id = \"abc-123\"\n"
+    <> "migrations_dir = \"./db/migrations\"\n"
     <> "\n"
     <> "[cloudflare.vars]\n"
     <> "ENVIRONMENT = \"production\"\n"
@@ -120,7 +126,18 @@ pub fn parse_realistic_gleam_toml_test() {
       config.cloudflare.name |> should.equal("my-worker")
       config.cloudflare.compatibility_date |> should.equal("2025-01-01")
       config.cloudflare.bindings.kv |> should.equal(["CACHE", "SESSIONS"])
-      config.cloudflare.bindings.d1 |> should.equal(["DB"])
+      config.cloudflare.bindings.d1
+      |> list.length
+      |> should.equal(1)
+      case config.cloudflare.bindings.d1 {
+        [d1] -> {
+          d1.binding |> should.equal("DB")
+          d1.database_name |> should.equal(Some("my-db"))
+          d1.database_id |> should.equal(Some("abc-123"))
+          d1.migrations_dir |> should.equal(Some("./db/migrations"))
+        }
+        _ -> should.fail()
+      }
       config.cloudflare.bindings.r2 |> should.equal(["ASSETS"])
       config.cloudflare.bindings.queues_producers
       |> should.equal(["EVENTS"])
@@ -243,7 +260,10 @@ pub fn full_pipeline_test() {
     <> "\n"
     <> "[cloudflare.bindings]\n"
     <> "kv = [\"CACHE\"]\n"
-    <> "d1 = [\"DB\"]\n"
+    <> "\n"
+    <> "[[cloudflare.d1]]\n"
+    <> "binding = \"DB\"\n"
+    <> "database_name = \"pipeline-db\"\n"
   let assert Ok(_) =
     simplifile.write(to: dir <> "/gleam.toml", contents: gleam_toml)
 
@@ -253,7 +273,16 @@ pub fn full_pipeline_test() {
   config.package_name |> should.equal("pipeline_test")
   config.cloudflare.name |> should.equal("pipeline-test")
   config.cloudflare.bindings.kv |> should.equal(["CACHE"])
-  config.cloudflare.bindings.d1 |> should.equal(["DB"])
+  config.cloudflare.bindings.d1
+  |> list.length
+  |> should.equal(1)
+  case config.cloudflare.bindings.d1 {
+    [d1] -> {
+      d1.binding |> should.equal("DB")
+      d1.database_name |> should.equal(Some("pipeline-db"))
+    }
+    _ -> should.fail()
+  }
 
   let mjs =
     "export function fetch(request, env, ctx) {\n"

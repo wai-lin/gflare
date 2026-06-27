@@ -3,6 +3,8 @@ import gleeunit/should
 
 import gflare/cli/toml_utils
 import gleam/dict
+import gleam/list
+import gleam/option.{None, Some}
 
 pub fn main() {
   gleeunit.main()
@@ -77,9 +79,75 @@ pub fn parse_config_with_d1_bindings_test() {
     <> "[cloudflare.bindings]\n"
     <> "d1 = [\"DB\"]\n"
   case toml_utils.parse_config(toml) {
-    Ok(config) ->
+    Ok(config) -> {
       config.cloudflare.bindings.d1
-      |> should.equal(["DB"])
+      |> list.length
+      |> should.equal(1)
+      case config.cloudflare.bindings.d1 {
+        [d1] -> {
+          d1.binding |> should.equal("DB")
+          d1.database_name |> should.equal(None)
+          d1.database_id |> should.equal(None)
+          d1.migrations_dir |> should.equal(None)
+        }
+        _ -> should.fail()
+      }
+    }
+    Error(_) -> should.fail()
+  }
+}
+
+pub fn parse_config_with_d1_table_bindings_test() {
+  let toml =
+    "name = \"my_app\"\n"
+    <> "\n"
+    <> "[cloudflare]\n"
+    <> "name = \"my-app\"\n"
+    <> "\n"
+    <> "[[cloudflare.d1]]\n"
+    <> "binding = \"DB\"\n"
+    <> "database_name = \"my-db\"\n"
+    <> "database_id = \"abc-123\"\n"
+    <> "migrations_dir = \"./db/migrations\"\n"
+  case toml_utils.parse_config(toml) {
+    Ok(config) -> {
+      config.cloudflare.bindings.d1
+      |> list.length
+      |> should.equal(1)
+      case config.cloudflare.bindings.d1 {
+        [d1] -> {
+          d1.binding |> should.equal("DB")
+          d1.database_name |> should.equal(Some("my-db"))
+          d1.database_id |> should.equal(Some("abc-123"))
+          d1.migrations_dir |> should.equal(Some("./db/migrations"))
+        }
+        _ -> should.fail()
+      }
+    }
+    Error(_) -> should.fail()
+  }
+}
+
+pub fn parse_config_with_multiple_d1_bindings_test() {
+  let toml =
+    "name = \"my_app\"\n"
+    <> "\n"
+    <> "[cloudflare]\n"
+    <> "name = \"my-app\"\n"
+    <> "\n"
+    <> "[[cloudflare.d1]]\n"
+    <> "binding = \"DB\"\n"
+    <> "database_name = \"my-db\"\n"
+    <> "\n"
+    <> "[[cloudflare.d1]]\n"
+    <> "binding = \"DB_REPLICA\"\n"
+    <> "database_id = \"xyz-789\"\n"
+  case toml_utils.parse_config(toml) {
+    Ok(config) -> {
+      config.cloudflare.bindings.d1
+      |> list.length
+      |> should.equal(2)
+    }
     Error(_) -> should.fail()
   }
 }

@@ -1,5 +1,6 @@
 import gleam/dict
 import gleam/list
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import simplifile
@@ -18,10 +19,19 @@ pub type CfConfig {
 pub type CfBindings {
   CfBindings(
     kv: List(String),
-    d1: List(String),
+    d1: List(D1Binding),
     r2: List(String),
     queues_producers: List(String),
     queues_consumers: List(String),
+  )
+}
+
+pub type D1Binding {
+  D1Binding(
+    binding: String,
+    database_name: Option(String),
+    database_id: Option(String),
+    migrations_dir: Option(String),
   )
 }
 
@@ -90,11 +100,51 @@ pub fn parse_config(content: String) -> Result(Config, String) {
 fn parse_bindings(cf_table: dict.Dict(String, Toml)) -> CfBindings {
   CfBindings(
     kv: get_string_list(cf_table, ["bindings", "kv"]),
-    d1: get_string_list(cf_table, ["bindings", "d1"]),
+    d1: parse_d1_bindings(cf_table),
     r2: get_string_list(cf_table, ["bindings", "r2"]),
     queues_producers: get_string_list(cf_table, ["bindings", "queues_producers"]),
     queues_consumers: get_string_list(cf_table, ["bindings", "queues_consumers"]),
   )
+}
+
+fn parse_d1_bindings(cf_table: dict.Dict(String, Toml)) -> List(D1Binding) {
+  case get_array_of_tables(cf_table, ["d1"]) {
+    Ok(tables) -> list.filter_map(tables, parse_d1_binding)
+    Error(_) -> {
+      // Fallback: old format d1 = ["NAME", ...]
+      let names = get_string_list(cf_table, ["bindings", "d1"])
+      list.map(names, fn(name) {
+        D1Binding(
+          binding: name,
+          database_name: None,
+          database_id: None,
+          migrations_dir: None,
+        )
+      })
+    }
+  }
+}
+
+fn parse_d1_binding(
+  table: dict.Dict(String, Toml),
+) -> Result(D1Binding, String) {
+  use binding <- result.try(
+    get_string(table, ["binding"])
+    |> result.replace_error("Missing d1 binding name"),
+  )
+  let database_name = case get_string(table, ["database_name"]) {
+    Ok(name) -> Some(name)
+    Error(_) -> None
+  }
+  let database_id = case get_string(table, ["database_id"]) {
+    Ok(id) -> Some(id)
+    Error(_) -> None
+  }
+  let migrations_dir = case get_string(table, ["migrations_dir"]) {
+    Ok(dir) -> Some(dir)
+    Error(_) -> None
+  }
+  Ok(D1Binding(binding:, database_name:, database_id:, migrations_dir:))
 }
 
 fn parse_do_config(cf_table: dict.Dict(String, Toml)) -> CfDoConfig {
