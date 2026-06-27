@@ -14,7 +14,6 @@ pub fn text_field_test() {
   let field = form_data.Text("hello")
   case field {
     form_data.Text(value) -> value |> should.equal("hello")
-    _ -> should.fail()
   }
 }
 
@@ -31,7 +30,6 @@ pub fn file_field_test() {
       content_type |> should.equal(Some("image/jpeg"))
       data |> should.equal(<<1, 2, 3>>)
     }
-    _ -> should.fail()
   }
 }
 
@@ -40,6 +38,5 @@ pub fn file_field_no_filename_test() {
     form_data.File(filename: None, content_type: Some("text/plain"), data: <<>>)
   case field {
     form_data.File(filename, _, _) -> filename |> should.equal(None)
-    _ -> should.fail()
   }
 }

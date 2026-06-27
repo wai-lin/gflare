@@ -9,12 +9,9 @@ pub type FormField {
   File(filename: Option(String), content_type: Option(String), data: BitArray)
 }
 
-pub opaque type FormData {
+pub type FormData {
   FormData(entries: List(#(String, FormField)))
 }
-
-// ponytail: FormData is constructed by FFI (gflare_ffi_form_data.mjs)
-// The constructor is used by the FFI but Gleam reports it as unused
 
 // FFI
 
