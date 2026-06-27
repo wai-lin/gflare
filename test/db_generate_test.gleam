@@ -77,7 +77,7 @@ pub fn generate_d1_select_with_returns_test() {
   should_contain(content, "id: Int")
   should_contain(content, "name: String")
   should_contain(content, "pub fn find_user(")
-  should_contain(content, "d1.Database db")
+  should_contain(content, "db: d1.Database")
   should_contain(content, "decode.int")
   should_contain(content, "decode.string")
 }
@@ -147,7 +147,7 @@ pub fn generate_turso_select_with_returns_test() {
   should_contain(content, "name: String")
   should_contain(content, "price: Float")
   should_contain(content, "pub fn find_item(")
-  should_contain(content, "turso.Config config")
+  should_contain(content, "config: turso.Config")
   should_contain(content, "turso.int(item_id)")
   should_contain(content, "extract_turso_value")
 }
@@ -437,7 +437,7 @@ fn verify_dual_backend_output(output_dir: String) {
   case simplifile.read(d1_path) {
     Ok(content) -> {
       should_contain(content, "pub fn find_user(")
-      should_contain(content, "d1.Database")
+      should_contain(content, "db: d1.Database")
       should_contain(content, "decode.int")
     }
     Error(_) -> should.fail()

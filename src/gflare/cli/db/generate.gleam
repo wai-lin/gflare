@@ -265,7 +265,7 @@ fn generate_d1_function(query: ParsedQuery) -> String {
     list.map(query.params, fn(p) {
       p.name <> ": " <> gleam_type_to_string(p.gleam_type)
     })
-    |> list.prepend(params_type <> " db")
+    |> list.prepend("db: " <> params_type)
     |> string.join(", ")
 
   let bind_values =
@@ -350,7 +350,7 @@ fn generate_turso_function(query: ParsedQuery) -> String {
     list.map(query.params, fn(p) {
       p.name <> ": " <> gleam_type_to_string(p.gleam_type)
     })
-    |> list.prepend(params_type <> " config")
+    |> list.prepend("config: " <> params_type)
     |> string.join(", ")
 
   let turso_args =
