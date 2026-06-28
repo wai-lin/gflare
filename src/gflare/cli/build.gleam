@@ -26,11 +26,6 @@ fn do_build(deploy: Bool, dev: Bool) -> Result(Nil, String) {
   )
 
   let package_name = config.package_name
-  let worker_name = config.worker_name
-  let compat_date = case config.compatibility_date {
-    "" -> do_get_iso_date()
-    d -> d
-  }
 
   io.println("Building Gleam project...")
   use _ <- result.try(run_gleam_build())
@@ -157,6 +152,3 @@ fn run_wrangler_deploy() -> Result(Nil, String) {
       )
   }
 }
-
-@external(javascript, "../ffi.mjs", "get_iso_date")
-fn do_get_iso_date() -> String
