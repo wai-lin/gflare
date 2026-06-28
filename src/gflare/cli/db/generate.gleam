@@ -187,6 +187,10 @@ fn generate_d1_module(
 
   let imports =
     "import gleam/dynamic/decode\nimport gleam/javascript/promise\nimport gleam/option.{type Option, None, Some}\nimport gflare/d1\nimport gflare/error.{type Error}"
+    <> case list.any(queries, fn(q) { q.returns_many }) {
+      True -> "\nimport gleam/list"
+      False -> ""
+    }
     <> shared_import
 
   let types = case use_shared_types {
