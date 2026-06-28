@@ -372,10 +372,10 @@ pub fn generate_decoder_with_multiple_fields_test() {
     ),
   ]
   let content = generate_and_read(queries, D1, "/tmp/test_decoder.gleam")
-  should_contain(content, "use id <- decode.field(0, decode.int)")
-  should_contain(content, "use name <- decode.field(1, decode.string)")
-  should_contain(content, "use score <- decode.field(2, decode.float)")
-  should_contain(content, "use active <- decode.field(3, decode.bool)")
+  should_contain(content, "use id <- decode.field(\"id\", decode.int)")
+  should_contain(content, "use name <- decode.field(\"name\", decode.string)")
+  should_contain(content, "use score <- decode.field(\"score\", decode.float)")
+  should_contain(content, "use active <- decode.field(\"active\", decode.bool)")
 }
 
 // Error handling tests

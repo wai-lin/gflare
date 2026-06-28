@@ -283,7 +283,7 @@ fn generate_d1_function(query: ParsedQuery) -> String {
     })
     |> string.join(",\n")
 
-  let decoder_lines = generate_decoder_lines(query.returns, 0)
+  let decoder_lines = generate_decoder_lines(query.returns)
   let return_type = case query.returns {
     [] -> "d1.D1Result"
     _ -> {
@@ -462,7 +462,7 @@ fn generate_turso_function(query: ParsedQuery) -> String {
   <> "\n}"
 }
 
-fn generate_decoder_lines(result_set: List(ResultSet), index: Int) -> String {
+fn generate_decoder_lines(result_set: List(ResultSet)) -> String {
   case result_set {
     [] -> ""
     [field, ..rest] -> {
@@ -470,12 +470,12 @@ fn generate_decoder_lines(result_set: List(ResultSet), index: Int) -> String {
       let line =
         "    use "
         <> field.name
-        <> " <- decode.field("
-        <> int.to_string(index)
-        <> ", "
+        <> " <- decode.field(\""
+        <> field.name
+        <> "\", "
         <> decoder_fn
         <> ")"
-      let rest_lines = generate_decoder_lines(rest, index + 1)
+      let rest_lines = generate_decoder_lines(rest)
       case rest_lines {
         "" -> line
         _ -> line <> "\n" <> rest_lines
